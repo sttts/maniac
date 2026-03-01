@@ -153,21 +153,52 @@ def generate_boot_beep():
 
 
 def generate_disk_drive(duration=1.5):
-    """Disk drive seek/spin sounds — rhythmic noise bursts."""
+    """C64 1541 floppy drive sound — loud mechanical stepper motor grinding."""
     n = int(SAMPLE_RATE * duration)
     mix = np.zeros(n)
 
-    # Spin hum
-    mix += _sine_wave(120, duration, volume=0.05)[:n]
+    # Motor spin — low rumble
+    mix += _sine_wave(95, duration, volume=0.15)[:n]
+    mix += _sine_wave(190, duration, volume=0.08)[:n]
+    # Motor wobble
+    t = np.linspace(0, duration, n, endpoint=False)
+    mix += np.sin(2 * np.pi * 300 * t + 3 * np.sin(2 * np.pi * 6 * t)) * 0.06
 
-    # Seek clicks
-    for i in range(int(duration / 0.15)):
-        start = int(i * 0.15 * SAMPLE_RATE)
-        click_len = int(0.02 * SAMPLE_RATE)
-        if start + click_len <= n:
-            click = _noise(0.02, volume=0.15)
-            click = _envelope(click, attack=0.001, decay=0.01, sustain_level=0.0, release=0.005)
-            mix[start:start + len(click)] += click
+    # Stepper motor head seeks — the iconic grinding bursts
+    # Pattern: groups of rapid steps with pauses (like the 1541 seeking tracks)
+    step_times = []
+    pos = 0.05
+    while pos < duration - 0.1:
+        # Burst of 4-8 rapid steps
+        burst_len = np.random.randint(4, 9)
+        for j in range(burst_len):
+            step_times.append(pos)
+            pos += 0.018 + np.random.uniform(0, 0.008)
+        # Pause between bursts
+        pos += 0.08 + np.random.uniform(0, 0.06)
+
+    for st in step_times:
+        idx = int(st * SAMPLE_RATE)
+        # Each step is a sharp mechanical click/thunk
+        step_dur = 0.012
+        step_n = int(step_dur * SAMPLE_RATE)
+        if idx + step_n > n:
+            break
+        # Noise burst with resonant frequency (stepper motor)
+        step = _noise(step_dur, volume=0.5)
+        # Add metallic ring at ~800Hz
+        step += _square_wave(800, step_dur, duty=0.3, volume=0.25)[:len(step)]
+        step = _envelope(step, attack=0.0005, decay=0.005, sustain_level=0.1, release=0.003)
+        mix[idx:idx + len(step)] += step
+
+    # Overall envelope — fade in motor, fade out at end
+    env = np.ones(n)
+    fade_in = min(int(0.05 * SAMPLE_RATE), n)
+    env[:fade_in] = np.linspace(0, 1, fade_in)
+    fade_out = min(int(0.1 * SAMPLE_RATE), n)
+    env[-fade_out:] = np.linspace(1, 0, fade_out)
+    mix *= env
+
     return mix
 
 
