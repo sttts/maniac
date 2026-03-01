@@ -6,7 +6,8 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
 SPRITE_DIR = os.path.join(PROJECT_ROOT, "assets", "sprites", "stefan")
 
 # Target height for character in the 320x200 scene
-TARGET_H = 36
+# Scene area is 136px tall; character should be roughly half that
+TARGET_H = 65
 
 
 def _load_sprite(path):
@@ -90,10 +91,12 @@ class Character:
         self.idle_frame = 0
 
         self._target_x = None
+        self._target_y = None
         self._on_arrive = None
 
-    def walk_to(self, x, on_arrive=None):
+    def walk_to(self, x, y=None, on_arrive=None):
         self._target_x = float(x)
+        self._target_y = float(y) if y is not None else self.y
         self._on_arrive = on_arrive
         self.state = "walk"
         self.facing = 1 if x > self.x else -1
@@ -121,11 +124,16 @@ class Character:
                 self.anim_timer = 0
                 self.anim_frame = (self.anim_frame + 1) % len(self.walk_frames)
 
+            # Move toward target in both x and y
             dx = self._target_x - self.x
+            dy = self._target_y - self.y
+            dist = max(0.01, (dx * dx + dy * dy) ** 0.5)
             move = self.walk_speed * dt
-            if abs(dx) <= move:
+            if dist <= move:
                 self.x = self._target_x
+                self.y = self._target_y
                 self._target_x = None
+                self._target_y = None
                 self.state = "stand"
                 self.anim_frame = 0
                 if self._on_arrive:
@@ -133,7 +141,8 @@ class Character:
                     self._on_arrive = None
                     cb()
             else:
-                self.x += move if dx > 0 else -move
+                self.x += (dx / dist) * move
+                self.y += (dy / dist) * move
 
     def draw(self, surface):
         if self.state == "walk":
