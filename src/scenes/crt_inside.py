@@ -1,6 +1,7 @@
 """Scene 7: CRT inside view — Stefan seen through CRT, recording dot blinking (~5s)."""
 import os
 import pygame
+from src.font import draw_text
 
 
 DURATION = 5.0
@@ -41,6 +42,23 @@ class CrtInsideScene:
             surface.fill((0, 0, 0))
             return
 
+        # Composite overlays onto a working copy so they zoom with the image
+        frame = self.bg.copy()
+
+        # Blinking white recording circle (1s frequency)
+        if int(self.time * 2) % 2 == 0:
+            pygame.draw.circle(frame, (255, 255, 255), (252, 37), 5)
+
+        # Recording timer (white, no background, mirrored, right-aligned)
+        secs = int(self.time)
+        timer_str = f"{secs // 60}:{secs % 60:02d}"
+        from src.font import text_width
+        tw = text_width(timer_str)
+        timer_surf = pygame.Surface((tw, 8), pygame.SRCALPHA)
+        draw_text(timer_surf, 0, 0, timer_str, color=(255, 255, 255))
+        timer_surf = pygame.transform.flip(timer_surf, True, False)
+        frame.blit(timer_surf, (260 - tw, 140))
+
         # Zoom-out effect: start zoomed in on center, scale out over 0.8s
         progress = min(1.0, self.time / 0.8)
         zoom = 2.0 - progress  # 2.0 → 1.0
@@ -50,15 +68,11 @@ class CrtInsideScene:
             zh = int(200 / zoom)
             zx = (320 - zw) // 2
             zy = (200 - zh) // 2
-            cropped = self.bg.subsurface(pygame.Rect(zx, zy, zw, zh))
+            cropped = frame.subsurface(pygame.Rect(zx, zy, zw, zh))
             scaled = pygame.transform.scale(cropped, (320, 200))
             surface.blit(scaled, (0, 0))
         else:
-            surface.blit(self.bg, (0, 0))
-
-        # Blinking white recording circle at top-right of CRT screen (1s frequency)
-        if int(self.time * 2) % 2 == 0:
-            pygame.draw.circle(surface, (255, 255, 255), (252, 37), 5)
+            surface.blit(frame, (0, 0))
 
     def get_sound_events(self, start_time):
         return []
