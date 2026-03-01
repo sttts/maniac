@@ -142,6 +142,93 @@ def generate_sid_music(duration=14.0):
     return mix
 
 
+def generate_outro(duration=4.0):
+    """Outro jingle — resolving C minor chord progression with a final flourish."""
+    n = int(SAMPLE_RATE * duration)
+    mix = np.zeros(n)
+
+    # Resolving chord progression: Cm → Ab → Eb → Cm (each ~0.8s)
+    chords = [
+        # (bass_freq, chord_freqs, start_time, dur)
+        (130.81, [261.63, 311.13, 392.00], 0.0, 0.9),   # Cm
+        (103.83, [207.65, 261.63, 311.13], 0.9, 0.9),    # Ab
+        (155.56, [311.13, 392.00, 466.16], 1.8, 0.9),    # Eb
+        (130.81, [261.63, 311.13, 392.00], 2.7, 1.3),    # Cm (held longer)
+    ]
+
+    for bass_f, chord_fs, t0, dur in chords:
+        start = int(t0 * SAMPLE_RATE)
+
+        # Bass note (sawtooth)
+        bass = _sawtooth_wave(bass_f, dur, volume=0.18)
+        bass = _envelope(bass, attack=0.01, decay=0.15, sustain_level=0.5, release=0.1)
+        end = min(start + len(bass), n)
+        mix[start:end] += bass[:end - start]
+
+        # Chord voices (pulse waves with slight detuning for richness)
+        for i, freq in enumerate(chord_fs):
+            duty = 0.35 + 0.1 * i
+            voice = _square_wave(freq, dur, duty=duty, volume=0.08)
+            voice = _envelope(voice, attack=0.02, decay=0.1, sustain_level=0.6, release=0.15)
+            end = min(start + len(voice), n)
+            mix[start:end] += voice[:end - start]
+
+    # Final note: high C with a long decay (signature ending)
+    final_start = int(2.7 * SAMPLE_RATE)
+    final = _square_wave(523.25, 1.3, duty=0.25, volume=0.1)
+    final = _envelope(final, attack=0.01, decay=0.3, sustain_level=0.4, release=0.5)
+    end = min(final_start + len(final), n)
+    mix[final_start:end] += final[:end - final_start]
+
+    # Fade out the last 0.5s
+    fade_samples = int(0.5 * SAMPLE_RATE)
+    mix[-fade_samples:] *= np.linspace(1, 0, fade_samples)
+
+    return mix
+
+
+def generate_mac_bong():
+    """Load Macintosh Quadra startup chime from WAV file."""
+    import wave
+    wav_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "sounds", "mac_startup.wav")
+    w = wave.open(wav_path, "r")
+    raw = w.readframes(w.getnframes())
+    samples = np.frombuffer(raw, dtype=np.int16).astype(np.float64) / 32767.0
+
+    # Resample from 22254 Hz to 44100 Hz
+    src_rate = w.getframerate()
+    w.close()
+    if src_rate != SAMPLE_RATE:
+        ratio = SAMPLE_RATE / src_rate
+        new_len = int(len(samples) * ratio)
+        x_old = np.linspace(0, 1, len(samples))
+        x_new = np.linspace(0, 1, new_len)
+        samples = np.interp(x_new, x_old, samples)
+
+    return samples * 1.0
+
+
+def generate_apple2_beep():
+    """Load Apple II startup beep from WAV file."""
+    import wave
+    wav_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "sounds", "apple2_startup.wav")
+    w = wave.open(wav_path, "r")
+    raw = w.readframes(w.getnframes())
+    samples = np.frombuffer(raw, dtype=np.int16).astype(np.float64) / 32767.0
+
+    # Resample if needed
+    src_rate = w.getframerate()
+    w.close()
+    if src_rate != SAMPLE_RATE:
+        ratio = SAMPLE_RATE / src_rate
+        new_len = int(len(samples) * ratio)
+        x_old = np.linspace(0, 1, len(samples))
+        x_new = np.linspace(0, 1, new_len)
+        samples = np.interp(x_new, x_old, samples)
+
+    return samples * 0.6
+
+
 def generate_click_sound():
     """Short click for mouse cursor actions."""
     return _envelope(_noise(0.03, volume=0.3), attack=0.001, decay=0.02, sustain_level=0.0, release=0.005)
