@@ -718,7 +718,7 @@ def draw_flight_sim(surface, scroll_y=0):
     # Deep blue water
     for y in range(gh):
         for x in range(gw):
-            wy = (y + int(scroll_y)) % 200
+            wy = (y - int(scroll_y)) % 200
             wave = ((x + wy * 3) % 12)
             if wave < 2:
                 game.set_at((x, y), (25, 65, 150))
@@ -734,7 +734,7 @@ def draw_flight_sim(surface, scroll_y=0):
         (130, 220, 35, 18), (270, 250, 22, 12),
     ]
     for ix, iy, iw, ih in islands:
-        draw_y = (iy - int(scroll_y)) % 300 - 80
+        draw_y = (iy + int(scroll_y)) % 300 - 80
         if -ih <= draw_y <= gh:
             # Island base
             pygame.draw.ellipse(game, (60, 140, 45), (ix - iw // 2, draw_y, iw, ih))
