@@ -10,7 +10,7 @@ BOOT_LINES = [
     "(C)Copyright Microsoft Corp",
     "1981-1990 ver 5.00A",
     "",
-    "C:\\>_",
+    "C:\\> _",
 ]
 
 

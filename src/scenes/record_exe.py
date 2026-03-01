@@ -1,10 +1,10 @@
-"""Scene 6: ESC → Desktop → YouTube Studio — Use YouTube Studio, click Record (~2.5s)."""
+"""Scene 6: ESC → Desktop → YouTube Studio — Use YouTube Studio, click Record (~4s)."""
 import pygame
 from src.pixel_art import draw_rec_screen
 from src.font import draw_text, draw_text_centered
 
 
-DURATION = 2.5
+DURATION = 4.0
 
 
 def _draw_desktop(surface):
@@ -89,17 +89,20 @@ class RecordExeScene:
         self.cursor.visible = False
         self.bg_cache = None
         self._phase_started = False
+        self._phase_delay = 0.0
 
     def _on_use_verb(self):
         self.ui.select_verb("Use")
         self.ui.set_status("Use")
         self.phase = "yt_click"
         self._phase_started = False
+        self._phase_delay = self.time + 0.3  # pause before next move
 
     def _on_yt_click(self):
         self.ui.set_status("Use YouTube Studio")
         self.phase = "rec_click"
         self._phase_started = False
+        self._phase_delay = self.time + 0.4  # pause to read status
 
     def _on_rec_click(self):
         self.ui.set_status("Use Record Button")
@@ -111,26 +114,30 @@ class RecordExeScene:
         self.ui.update(dt, self.cursor.x, self.cursor.y)
 
         # Phase: ESC key shown briefly
-        if self.phase == "esc" and self.time > 0.4:
+        if self.phase == "esc" and self.time > 0.5:
             self.phase = "desktop"
             self.cursor.visible = True
             self.cursor.teleport(160, 70)
+            self._phase_delay = self.time + 0.3
 
         # Phase: desktop visible, cursor moves to "Use" verb
         if self.phase == "desktop" and not self._phase_started and not self.cursor.is_moving():
-            self._phase_started = True
-            vx, vy = self.ui.get_verb_pos("Use")
-            self.cursor.move_to(vx, vy, duration=0.3, on_arrive=self._on_use_verb)
+            if self.time >= self._phase_delay:
+                self._phase_started = True
+                vx, vy = self.ui.get_verb_pos("Use")
+                self.cursor.move_to(vx, vy, duration=0.5, on_arrive=self._on_use_verb)
 
         # Phase: cursor clicks on YouTube Studio window title
         if self.phase == "yt_click" and not self._phase_started and not self.cursor.is_moving():
-            self._phase_started = True
-            self.cursor.move_to(155, 35, duration=0.3, on_arrive=self._on_yt_click)
+            if self.time >= self._phase_delay:
+                self._phase_started = True
+                self.cursor.move_to(155, 35, duration=0.5, on_arrive=self._on_yt_click)
 
         # Phase: cursor clicks Record button
         if self.phase == "rec_click" and not self._phase_started and not self.cursor.is_moving():
-            self._phase_started = True
-            self.cursor.move_to(REC_BTN_X, REC_BTN_Y, duration=0.25, on_arrive=self._on_rec_click)
+            if self.time >= self._phase_delay:
+                self._phase_started = True
+                self.cursor.move_to(REC_BTN_X, REC_BTN_Y, duration=0.4, on_arrive=self._on_rec_click)
 
         if self.time >= DURATION:
             self.done = True
@@ -170,9 +177,9 @@ class RecordExeScene:
         # ESC keypress
         events.append((start_time + 0.1, generate_keypress()))
         # Use verb click
-        events.append((start_time + 0.7, generate_click_sound()))
+        events.append((start_time + 1.3, generate_click_sound()))
         # YouTube Studio click
-        events.append((start_time + 1.0, generate_click_sound()))
+        events.append((start_time + 2.1, generate_click_sound()))
         # Record button click
-        events.append((start_time + 1.5, generate_click_sound()))
+        events.append((start_time + 2.9, generate_click_sound()))
         return events

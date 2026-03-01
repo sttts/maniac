@@ -38,7 +38,16 @@ class FlightSimScene:
     def draw(self, surface):
         if self.phase == "typing":
             typed = self.command[:self.typed_chars]
-            lines = ["C:\\>" + typed]
+
+            # Keep boot text visible, type on the existing prompt line
+            lines = [
+                "MS-DOS",
+                "",
+                "(C)Copyright Microsoft Corp",
+                "1981-1990 ver 5.00A",
+                "",
+                "C:\\> " + typed,
+            ]
             cursor_on = int(self.time * 4) % 2 == 0
             draw_dos_screen(surface, lines, cursor_visible=cursor_on)
         else:
