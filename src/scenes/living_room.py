@@ -17,7 +17,7 @@ class LivingRoom:
 
         # Place character on left side of room
         self.character.x = 80.0
-        self.character.y = 132.0
+        self.character.y = 134.0
         self.character.state = "stand"
         self.character.facing = 1
         self.cursor.teleport(160, 60)

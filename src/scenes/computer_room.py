@@ -17,7 +17,7 @@ class ComputerRoom:
 
         # Character enters from left
         self.character.x = 10.0
-        self.character.y = 132.0
+        self.character.y = 134.0
         self.character.state = "walk"
         self.character.facing = 1
         self.character.walk_to(DESK_X, on_arrive=self._on_desk_arrive)

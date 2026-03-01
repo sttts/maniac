@@ -1,6 +1,7 @@
 """Scene 6: ESC → DOS → RECORD.EXE — exits flight sim, types RECORD.EXE, shows REC screen (~2s)."""
 import pygame
 from src.pixel_art import draw_dos_screen, draw_rec_screen
+from src.font import draw_text_centered
 
 
 DURATION = 2.0
@@ -38,12 +39,12 @@ class RecordExeScene:
         if self.phase == "esc":
             # Show ESC key press overlay on black screen
             surface.fill((0, 0, 0))
-            font = pygame.font.SysFont("monospace", 12, bold=True)
             # ESC key box
-            pygame.draw.rect(surface, (60, 60, 70), (135, 55, 50, 30))
-            pygame.draw.rect(surface, (90, 90, 100), (137, 57, 46, 26))
-            esc_text = font.render("ESC", False, (200, 200, 200))
-            surface.blit(esc_text, (145, 62))
+            pygame.draw.rect(surface, (50, 50, 58), (130, 50, 60, 36))
+            pygame.draw.rect(surface, (80, 80, 90), (132, 52, 56, 32))
+            pygame.draw.rect(surface, (95, 95, 105), (132, 52, 56, 3))
+            pygame.draw.rect(surface, (65, 65, 72), (132, 81, 56, 3))
+            draw_text_centered(surface, 160, 63, "ESC", (200, 200, 200))
 
         elif self.phase == "typing":
             typed = self.command[:self.typed_chars]

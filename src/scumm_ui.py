@@ -1,52 +1,49 @@
+"""SCUMM verb bar and inventory UI — authentic Maniac Mansion style."""
 import pygame
+from src.font import draw_text, draw_text_centered, text_width, CHAR_H
 
-# SCUMM UI layout constants (at 320x200 native resolution)
-UI_TOP = 144        # verb area starts here
-VERB_AREA_TOP = 144
-VERB_AREA_H = 32
-INV_AREA_TOP = 176  # inventory area
+# Layout at 320x200 native resolution (matching real Maniac Mansion)
+SCENE_H = 136       # playable scene area
+STATUS_Y = 136      # one-line status text
+VERB_AREA_TOP = 146 # verb grid starts here
+VERB_AREA_H = 28    # 3 rows * ~9px
+INV_AREA_TOP = 176  # inventory below verbs
 INV_AREA_H = 24
-SCENE_H = 144       # playable scene area height
+UI_TOP = STATUS_Y   # where the UI begins
 
-# Verb list matching Maniac Mansion layout
+# Verb grid: 3 columns x 3 rows (matching Maniac Mansion layout)
 VERBS = [
-    "Walk to", "Pick up", "Use",
-    "Open",    "Look at", "Turn on",
-    "Close",   "Give",    "Push",
+    "Walk to",  "Pick up",  "Use",
+    "Open",     "Look at",  "Turn on",
+    "Close",    "Give",     "Push",
 ]
 
-# Inventory items
 INVENTORY = ["Key", "Blank Tape", "Can of Pepsi"]
 
-# Colors
-COL_BG = (0, 0, 0)
-COL_VERB = (120, 180, 120)       # green text
-COL_VERB_HI = (255, 255, 100)    # highlighted yellow
+# Authentic Maniac Mansion colors
+COL_UI_BG = (16, 16, 60)          # dark blue UI background
+COL_VERB = (0, 200, 0)            # green verbs (MM used bright green)
+COL_VERB_HI = (255, 255, 85)     # highlighted verb (bright yellow)
 COL_VERB_CLICK = (255, 255, 255) # click flash white
-COL_INV = (100, 160, 200)        # inventory blue
-COL_STATUS = (255, 255, 255)     # status line
+COL_INV_BG = (16, 16, 60)        # inventory background
+COL_INV_TEXT = (0, 200, 0)       # inventory text green
+COL_INV_BORDER = (80, 80, 120)   # subtle border between items
+COL_STATUS = (255, 255, 255)     # status line white
 
-
-def _get_font():
-    """Get a small pixel font for the UI."""
-    return pygame.font.SysFont("monospace", 8, bold=False)
+# Verb positions: col_x offsets for 3 columns
+VERB_COL_X = [6, 110, 216]
+VERB_ROW_H = 9
 
 
 class ScummUI:
     def __init__(self):
-        self.font = None
-        self.selected_verb = None   # currently selected verb text
-        self.highlight_verb = None  # verb under cursor
-        self.click_flash = None     # verb being click-flashed
+        self.selected_verb = None
+        self.highlight_verb = None
+        self.click_flash = None
         self.click_timer = 0.0
-        self.status_text = ""       # top status line e.g. "Walk to Door"
-
-    def _ensure_font(self):
-        if self.font is None:
-            self.font = _get_font()
+        self.status_text = ""
 
     def select_verb(self, verb):
-        """Set the selected/active verb."""
         self.selected_verb = verb
         self.click_flash = verb
         self.click_timer = 0.15
@@ -55,57 +52,59 @@ class ScummUI:
         self.status_text = text
 
     def get_verb_pos(self, verb):
-        """Return center position (x, y) of a verb in native coords."""
+        """Return center (x, y) of a verb label in native coords."""
         if verb not in VERBS:
-            return (160, VERB_AREA_TOP + 16)
+            return (160, VERB_AREA_TOP + 14)
         idx = VERBS.index(verb)
         col = idx % 3
         row = idx // 3
-        x = 10 + col * 107 + 50
-        y = VERB_AREA_TOP + 2 + row * 10 + 4
+        x = VERB_COL_X[col] + text_width(verb) // 2
+        y = VERB_AREA_TOP + row * VERB_ROW_H + CHAR_H // 2
         return (x, y)
 
     def get_inventory_pos(self, item):
-        """Return center position of an inventory item."""
         if item not in INVENTORY:
-            return (160, INV_AREA_TOP + 12)
+            return (160, INV_AREA_TOP + 10)
         idx = INVENTORY.index(item)
-        x = 10 + idx * 100 + 40
-        y = INV_AREA_TOP + 12
+        slot_w = 320 // len(INVENTORY)
+        x = idx * slot_w + slot_w // 2
+        y = INV_AREA_TOP + 10
         return (x, y)
 
     def update(self, dt, cursor_x, cursor_y):
-        """Update hover state and click flash timer."""
         if self.click_timer > 0:
             self.click_timer -= dt
             if self.click_timer <= 0:
                 self.click_flash = None
 
-        # Check verb hover
+        # Verb hover detection
         self.highlight_verb = None
         if VERB_AREA_TOP <= cursor_y < VERB_AREA_TOP + VERB_AREA_H:
             for verb in VERBS:
                 vx, vy = self.get_verb_pos(verb)
-                if abs(cursor_x - vx) < 45 and abs(cursor_y - vy) < 6:
+                hw = text_width(verb) // 2 + 4
+                if abs(cursor_x - vx) < hw and abs(cursor_y - vy) < 5:
                     self.highlight_verb = verb
                     break
 
     def draw(self, surface):
-        self._ensure_font()
+        # Dark blue background for entire UI area
+        pygame.draw.rect(surface, COL_UI_BG, (0, UI_TOP, 320, 200 - UI_TOP))
 
-        # Black background for UI area
-        pygame.draw.rect(
-            surface, COL_BG, (0, UI_TOP, 320, 200 - UI_TOP)
-        )
+        # Thin separator line between scene and UI
+        pygame.draw.line(surface, (40, 40, 100), (0, UI_TOP), (319, UI_TOP))
 
-        # Draw verbs in grid
+        # Status line (centered, one line above verbs)
+        if self.status_text:
+            draw_text_centered(surface, 160, STATUS_Y + 2, self.status_text, COL_STATUS)
+
+        # Verb grid
         for i, verb in enumerate(VERBS):
             col = i % 3
             row = i // 3
-            x = 10 + col * 107
-            y = VERB_AREA_TOP + 2 + row * 10
+            x = VERB_COL_X[col]
+            y = VERB_AREA_TOP + row * VERB_ROW_H
 
-            # Pick color based on state
             if verb == self.click_flash and self.click_timer > 0:
                 color = COL_VERB_CLICK
             elif verb == self.selected_verb:
@@ -115,18 +114,19 @@ class ScummUI:
             else:
                 color = COL_VERB
 
-            text_surf = self.font.render(verb, False, color)
-            surface.blit(text_surf, (x, y))
+            draw_text(surface, x, y, verb, color)
 
-        # Draw inventory items
+        # Inventory area border
+        pygame.draw.line(surface, COL_INV_BORDER, (0, INV_AREA_TOP - 1), (319, INV_AREA_TOP - 1))
+
+        # Inventory slots
+        slot_w = 320 // len(INVENTORY)
         for i, item in enumerate(INVENTORY):
-            x = 10 + i * 100
+            x = i * slot_w + 4
             y = INV_AREA_TOP + 4
-            text_surf = self.font.render(item, False, COL_INV)
-            surface.blit(text_surf, (x, y))
+            draw_text(surface, x, y, item, COL_INV_TEXT)
 
-        # Status line at top of UI area
-        if self.status_text:
-            status_surf = self.font.render(self.status_text, False, COL_STATUS)
-            sw = status_surf.get_width()
-            surface.blit(status_surf, ((320 - sw) // 2, UI_TOP - 10))
+            # Slot divider
+            if i > 0:
+                dx = i * slot_w
+                pygame.draw.line(surface, COL_INV_BORDER, (dx, INV_AREA_TOP), (dx, 199))

@@ -1,191 +1,222 @@
+"""Stefan character sprite — detailed SCUMM-style pixel art, 3/4 perspective."""
 import pygame
 
-# Stefan sprite: ~16x30 pixels, 3/4 perspective SCUMM style
-# Blue hoodie, glasses, light brown/gray hair, beard
+# Sprite is defined as a color-indexed pixel map for maximum control.
+# 20 wide x 36 tall — larger than before for better detail.
+W, H = 20, 36
 
-# Color palette
-SKIN = (220, 180, 140)
-SKIN_SHADE = (190, 150, 110)
-HAIR = (160, 140, 110)
-HAIR_LIGHT = (190, 175, 150)
-BEARD = (150, 135, 115)
-HOODIE = (50, 80, 160)
-HOODIE_SHADE = (35, 60, 130)
-HOODIE_LIGHT = (70, 110, 190)
-PANTS = (60, 60, 80)
-SHOES = (50, 40, 30)
-GLASSES = (60, 50, 40)
-GLASSES_LENS = (180, 200, 220)
-EYE = (40, 40, 40)
-T = (0, 0, 0, 0)  # transparent
+# Palette indices
+_ = None  # transparent
+K = 0     # black (outline)
+S = 1     # skin
+D = 2     # skin shadow
+H1 = 3    # hair main
+H2 = 4    # hair highlight
+B = 5     # beard
+G = 6     # glasses frame
+L = 7     # glasses lens
+E = 8     # eye (pupil)
+W1 = 9    # white of eye
+C = 10    # hoodie main blue
+C2 = 11   # hoodie shadow
+C3 = 12   # hoodie highlight
+Z = 13    # zipper/hoodie accent
+T = 14    # t-shirt (visible at collar)
+P = 15    # pants
+P2 = 16   # pants shadow
+SH = 17   # shoes
+SH2 = 18  # shoes highlight
+SK = 19   # skin hand
+
+PALETTE = {
+    K: (20, 15, 10),
+    S: (225, 185, 145),
+    D: (190, 150, 110),
+    H1: (150, 135, 105),
+    H2: (185, 170, 140),
+    B: (160, 145, 120),
+    G: (50, 40, 30),
+    L: (170, 195, 215),
+    E: (30, 30, 35),
+    W1: (230, 230, 240),
+    C: (50, 80, 170),
+    C2: (30, 55, 130),
+    C3: (75, 110, 200),
+    Z: (90, 90, 100),
+    T: (140, 145, 150),
+    P: (55, 55, 75),
+    P2: (40, 40, 55),
+    SH: (60, 45, 30),
+    SH2: (80, 60, 40),
+    SK: (210, 175, 135),
+}
+
+# Standing sprite facing right (3/4 view)
+# Each row is 20 pixels wide
+STAND = [
+    # Row 0-3: Hair/top of head
+    [_,_,_,_,_,_,H1,H1,H1,H1,H1,H1,H1,_,_,_,_,_,_,_],
+    [_,_,_,_,_,H1,H2,H2,H1,H1,H1,H1,H1,H1,_,_,_,_,_,_],
+    [_,_,_,_,_,H1,H2,H2,H2,H1,H1,H1,H1,H1,_,_,_,_,_,_],
+    [_,_,_,_,_,H1,H1,H2,H1,H1,H1,H1,H1,H1,_,_,_,_,_,_],
+    # Row 4-5: Forehead + glasses
+    [_,_,_,_,_,K,S,S,S,S,S,S,S,K,_,_,_,_,_,_],
+    [_,_,_,_,_,K,S,S,S,S,S,S,D,K,_,_,_,_,_,_],
+    # Row 6-7: Eyes with glasses
+    [_,_,_,_,_,K,G,G,G,G,G,G,G,K,_,_,_,_,_,_],
+    [_,_,_,_,_,K,G,W1,E,G,G,W1,E,K,_,_,_,_,_,_],
+    # Row 8: Nose
+    [_,_,_,_,_,K,S,S,S,S,D,S,D,K,_,_,_,_,_,_],
+    # Row 9-11: Mouth and beard
+    [_,_,_,_,_,K,S,B,B,B,B,B,D,K,_,_,_,_,_,_],
+    [_,_,_,_,_,_,K,B,B,B,B,B,K,_,_,_,_,_,_,_],
+    [_,_,_,_,_,_,_,K,B,B,B,K,_,_,_,_,_,_,_,_],
+    # Row 12: Neck
+    [_,_,_,_,_,_,_,_,S,S,S,_,_,_,_,_,_,_,_,_],
+    # Row 13: Collar (t-shirt visible)
+    [_,_,_,_,_,_,C2,T,T,T,T,T,C2,_,_,_,_,_,_,_],
+    # Row 14-20: Hoodie body
+    [_,_,_,_,_,C2,C,C,C3,Z,Z,C3,C,C,C2,_,_,_,_,_],
+    [_,_,_,_,C2,C,C,C,C3,Z,Z,C3,C,C,C,C2,_,_,_,_],
+    [_,_,_,_,C2,C,C,C,C,Z,Z,C,C,C,C,C2,_,_,_,_],
+    [_,_,_,C2,C2,C,C,C,C,Z,Z,C,C,C,C,C2,C2,_,_,_],
+    [_,_,_,C2,C2,C,C,C,C,C,C,C,C,C,C,C2,C2,_,_,_],
+    [_,_,_,_,C2,C,C,C,C,C,C,C,C,C,C,C2,_,_,_,_],
+    [_,_,_,_,C2,C,C,C,C,C,C,C,C,C,C,C2,_,_,_,_],
+    # Row 21-22: Hoodie bottom + hands
+    [_,_,_,_,C2,C,C,C,C,C,C,C,C,C,C,C2,_,_,_,_],
+    [_,_,_,SK,SK,C2,C,C,C,C,C,C,C,C,C2,SK,SK,_,_,_],
+    # Row 23-27: Pants
+    [_,_,_,_,_,_,P,P,P,P,P,P,P,P,_,_,_,_,_,_],
+    [_,_,_,_,_,_,P,P,P,P,P,P,P,P,_,_,_,_,_,_],
+    [_,_,_,_,_,_,P,P,P,P2,P,P,P,P,_,_,_,_,_,_],
+    [_,_,_,_,_,_,P,P,P,P2,P,P,P,P,_,_,_,_,_,_],
+    [_,_,_,_,_,_,P,P,P,_,_,P,P,P,_,_,_,_,_,_],
+    # Row 28-30: Lower legs
+    [_,_,_,_,_,_,P,P,P2,_,_,P2,P,P,_,_,_,_,_,_],
+    [_,_,_,_,_,_,P,P,P2,_,_,P2,P,P,_,_,_,_,_,_],
+    [_,_,_,_,_,_,P2,P,P2,_,_,P2,P,P2,_,_,_,_,_,_],
+    # Row 31-33: Shoes
+    [_,_,_,_,_,SH,SH,SH2,SH,_,_,SH,SH2,SH,SH,_,_,_,_,_],
+    [_,_,_,_,_,SH,SH,SH2,SH,_,_,SH,SH2,SH,SH,_,_,_,_,_],
+    [_,_,_,_,_,SH,SH,SH,SH,_,_,SH,SH,SH,SH,_,_,_,_,_],
+    # Row 34-35: padding
+    [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+    [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+]
+
+# Walk frame 2: left foot forward, right foot back
+WALK_LEFT_FWD = list(STAND[:27])  # copy upper body
+WALK_LEFT_FWD += [
+    # Left leg forward, right leg back
+    [_,_,_,_,_,P,P,P,P2,_,_,_,P2,P,P,_,_,_,_,_],
+    [_,_,_,_,P,P,P,P2,_,_,_,_,_,P2,P,_,_,_,_,_],
+    [_,_,_,_,P,P,P,P2,_,_,_,_,_,P2,P,P,_,_,_,_],
+    [_,_,_,SH,SH,SH2,SH,SH,_,_,_,_,_,SH,SH2,SH,_,_,_,_],
+    [_,_,_,SH,SH,SH,SH,SH,_,_,_,_,_,SH,SH,SH,_,_,_,_],
+    [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+    [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+    [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+    [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+]
+
+# Walk frame 3: right foot forward, left foot back (mirror of frame 2)
+WALK_RIGHT_FWD = list(STAND[:27])
+WALK_RIGHT_FWD += [
+    [_,_,_,_,_,_,P,P,P2,_,_,P,P,P,P,_,_,_,_,_],
+    [_,_,_,_,_,_,P2,P,_,_,_,_,P,P,P,P,_,_,_,_],
+    [_,_,_,_,_,P,P2,P,_,_,_,_,P,P,P,P,_,_,_,_],
+    [_,_,_,_,SH,SH2,SH,SH,_,_,_,SH,SH,SH2,SH,SH,_,_,_,_],
+    [_,_,_,_,SH,SH,SH,SH,_,_,_,SH,SH,SH,SH,SH,_,_,_,_],
+    [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+    [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+    [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+    [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+]
+
+# Sitting sprite (upper body same, legs bent forward)
+SITTING = list(STAND[:23])  # up to hands
+SITTING += [
+    # Seated: legs extend forward
+    [_,_,_,_,_,_,P,P,P,P,P,P,P,P,_,_,_,_,_,_],
+    [_,_,_,_,_,_,P,P,P,P,P,P,P,P,P,_,_,_,_,_],
+    [_,_,_,_,_,_,_,P,P,P,P,P,P,P,P,P,_,_,_,_],
+    [_,_,_,_,_,_,_,_,P2,P,P,P2,P,P,P,P,_,_,_,_],
+    [_,_,_,_,_,_,_,_,_,_,_,_,SH,SH,SH2,SH,_,_,_,_],
+    [_,_,_,_,_,_,_,_,_,_,_,_,SH,SH,SH,SH,_,_,_,_],
+    [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+    [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+    [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+    [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+    [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+    [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+    [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+]
+
+# Waving sprite (right arm raised)
+WAVING = [
+    # Row 0-3: Hair (same)
+    STAND[0], STAND[1], STAND[2], STAND[3],
+    # Row 4-12: Face (same)
+    STAND[4], STAND[5], STAND[6], STAND[7], STAND[8],
+    STAND[9], STAND[10], STAND[11], STAND[12],
+    # Row 13: collar
+    STAND[13],
+    # Row 14-22: body with raised right arm
+    [_,_,_,_,_,C2,C,C,C3,Z,Z,C3,C,C,C2,C2,_,_,_,_],
+    [_,_,_,_,C2,C,C,C,C3,Z,Z,C3,C,C,C,_,C2,_,_,_],
+    [_,_,_,_,C2,C,C,C,C,Z,Z,C,C,C,C,_,_,C2,_,_],
+    [_,_,_,C2,C2,C,C,C,C,Z,Z,C,C,C,C,_,_,C3,_,_],
+    [_,_,_,C2,C2,C,C,C,C,C,C,C,C,C,C,_,_,SK,_,_],
+    [_,_,_,_,C2,C,C,C,C,C,C,C,C,C,C,_,SK,SK,_,_],
+    [_,_,_,_,C2,C,C,C,C,C,C,C,C,C,C,C2,_,_,_,_],
+    [_,_,_,_,C2,C,C,C,C,C,C,C,C,C,C,C2,_,_,_,_],
+    [_,_,_,SK,SK,C2,C,C,C,C,C,C,C,C,C2,_,_,_,_,_],
+    # Row 23+: pants/shoes same as standing
+    STAND[23], STAND[24], STAND[25], STAND[26], STAND[27],
+    STAND[28], STAND[29], STAND[30], STAND[31], STAND[32],
+    STAND[33], STAND[34], STAND[35],
+]
 
 
-def _draw_stefan_base(s, foot_offset=0):
-    """Draw Stefan's base sprite on a 16x30 surface."""
+def _render_sprite(pixel_data):
+    """Convert a pixel data grid to a pygame surface."""
+    sprite_h = len(pixel_data)
+    sprite_w = 20
+    s = pygame.Surface((sprite_w, sprite_h), pygame.SRCALPHA)
     s.fill((0, 0, 0, 0))
-    W, H = 16, 30
-
-    # Hair (top of head)
-    for x in range(5, 11):
-        s.set_at((x, 0), HAIR)
-    for x in range(4, 12):
-        s.set_at((x, 1), HAIR)
-    for x in range(4, 12):
-        s.set_at((x, 2), HAIR_LIGHT if x in (6, 7, 8) else HAIR)
-
-    # Face
-    for y in range(3, 9):
-        for x in range(4, 12):
-            s.set_at((x, y), SKIN)
-    # Side shading
-    for y in range(3, 9):
-        s.set_at((4, y), SKIN_SHADE)
-        s.set_at((11, y), SKIN_SHADE)
-
-    # Glasses
-    for x in range(5, 11):
-        s.set_at((x, 4), GLASSES)
-    s.set_at((5, 5), GLASSES_LENS)
-    s.set_at((6, 5), GLASSES_LENS)
-    s.set_at((9, 5), GLASSES_LENS)
-    s.set_at((10, 5), GLASSES_LENS)
-    s.set_at((7, 5), GLASSES)  # bridge
-
-    # Eyes
-    s.set_at((6, 5), EYE)
-    s.set_at((9, 5), EYE)
-
-    # Beard
-    for y in range(7, 10):
-        for x in range(5, 11):
-            s.set_at((x, y), BEARD)
-    # Chin
-    for x in range(6, 10):
-        s.set_at((x, 10), BEARD)
-
-    # Hoodie body
-    for y in range(10, 21):
-        for x in range(3, 13):
-            shade = HOODIE_SHADE if x <= 4 or x >= 12 else HOODIE
-            if x in (7, 8) and y < 14:
-                shade = HOODIE_LIGHT  # zipper highlight
-            s.set_at((x, y), shade)
-
-    # Arms
-    for y in range(11, 19):
-        s.set_at((2, y), HOODIE_SHADE)
-        s.set_at((13, y), HOODIE_SHADE)
-    # Hands
-    s.set_at((2, 19), SKIN)
-    s.set_at((13, 19), SKIN)
-
-    # Pants
-    for y in range(21, 26):
-        for x in range(4, 12):
-            s.set_at((x, y), PANTS)
-
-    # Legs/shoes with walk offset
-    left_foot_y = 26 + foot_offset
-    right_foot_y = 26 - foot_offset
-
-    # Left leg
-    for y in range(26, min(30, max(26, left_foot_y + 2))):
-        for x in range(4, 8):
-            if y < 28:
-                s.set_at((x, y), PANTS)
-            else:
-                s.set_at((x, y), SHOES)
-    # Right leg
-    for y in range(26, min(30, max(26, right_foot_y + 2))):
-        for x in range(8, 12):
-            if y < 28:
-                s.set_at((x, y), PANTS)
-            else:
-                s.set_at((x, y), SHOES)
-
-    # Ensure shoes are visible
-    for x in range(4, 8):
-        s.set_at((x, 28), SHOES)
-        s.set_at((x, 29), SHOES)
-    for x in range(8, 12):
-        s.set_at((x, 28), SHOES)
-        s.set_at((x, 29), SHOES)
-
-
-def _draw_stefan_sitting(s):
-    """Draw Stefan sitting (legs bent, lower body shortened)."""
-    s.fill((0, 0, 0, 0))
-
-    # Same upper body as standing
-    _draw_stefan_base(s)
-
-    # Override lower body for sitting pose: clear legs
-    for y in range(21, 30):
-        for x in range(0, 16):
-            s.set_at((x, y), (0, 0, 0, 0))
-
-    # Seated pants (bent legs going forward)
-    for y in range(21, 25):
-        for x in range(4, 13):
-            s.set_at((x, y), PANTS)
-    # Feet pointing down
-    for x in range(10, 14):
-        s.set_at((x, 25), SHOES)
-        s.set_at((x, 26), SHOES)
-
-
-def _draw_stefan_waving(s):
-    """Draw Stefan with right arm raised waving."""
-    _draw_stefan_base(s)
-
-    # Override right arm — raise it up
-    for y in range(11, 19):
-        s.set_at((13, y), (0, 0, 0, 0))
-
-    # Raised arm
-    for y in range(4, 11):
-        s.set_at((14, y), HOODIE)
-    s.set_at((14, 3), SKIN)  # hand
-    s.set_at((15, 3), SKIN)
-    s.set_at((15, 4), SKIN)
+    for y, row in enumerate(pixel_data):
+        for x, idx in enumerate(row):
+            if idx is not None and idx in PALETTE:
+                s.set_at((x, y), PALETTE[idx])
+    return s
 
 
 class Character:
     def __init__(self):
-        # Generate walk cycle frames
-        self.walk_frames = []
-        offsets = [0, 1, 0, -1]
-        for off in offsets:
-            frame = pygame.Surface((16, 30), pygame.SRCALPHA)
-            _draw_stefan_base(frame, foot_offset=off)
-            self.walk_frames.append(frame)
-
-        # Standing frame
-        self.stand_frame = self.walk_frames[0]
-
-        # Sitting frame
-        self.sit_frame = pygame.Surface((16, 30), pygame.SRCALPHA)
-        _draw_stefan_sitting(self.sit_frame)
-
-        # Waving frame
-        self.wave_frame = pygame.Surface((16, 30), pygame.SRCALPHA)
-        _draw_stefan_waving(self.wave_frame)
+        self.stand_frame = _render_sprite(STAND)
+        self.walk_frames = [
+            self.stand_frame,
+            _render_sprite(WALK_LEFT_FWD),
+            self.stand_frame,
+            _render_sprite(WALK_RIGHT_FWD),
+        ]
+        self.sit_frame = _render_sprite(SITTING)
+        self.wave_frame = _render_sprite(WAVING)
 
         # State
         self.x = 40.0
-        self.y = 110.0     # feet position (bottom of sprite)
-        self.state = "stand"  # stand, walk, sit, wave
-        self.facing = 1     # 1 = right, -1 = left
-        self.walk_speed = 50.0  # pixels per second
+        self.y = 125.0
+        self.state = "stand"
+        self.facing = 1       # 1=right, -1=left
+        self.walk_speed = 50.0
         self.anim_timer = 0.0
         self.anim_frame = 0
 
-        # Walk target
         self._target_x = None
         self._on_arrive = None
 
     def walk_to(self, x, on_arrive=None):
-        """Start walking to x position."""
         self._target_x = float(x)
         self._on_arrive = on_arrive
         self.state = "walk"
@@ -202,13 +233,11 @@ class Character:
 
     def update(self, dt):
         if self.state == "walk" and self._target_x is not None:
-            # Animate walk cycle
             self.anim_timer += dt
-            if self.anim_timer >= 0.15:
+            if self.anim_timer >= 0.12:
                 self.anim_timer = 0
                 self.anim_frame = (self.anim_frame + 1) % 4
 
-            # Move toward target
             dx = self._target_x - self.x
             move = self.walk_speed * dt
             if abs(dx) <= move:
@@ -233,11 +262,10 @@ class Character:
         else:
             frame = self.stand_frame
 
-        # Flip if facing left
         if self.facing < 0:
             frame = pygame.transform.flip(frame, True, False)
 
-        # Draw with feet at (self.x, self.y)
+        # Feet anchored at (self.x, self.y)
         draw_x = int(self.x) - frame.get_width() // 2
         draw_y = int(self.y) - frame.get_height()
         surface.blit(frame, (draw_x, draw_y))
