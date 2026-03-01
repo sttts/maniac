@@ -125,6 +125,9 @@ def run(preview=False):
         CrtInsideScene(cursor, character, ui),
     ]
 
+    # Re-init first scene so shared state is correct after all constructors ran
+    scenes[0].__init__(cursor, character, ui)
+
     # Render frames
     dt = 1.0 / FPS
     frame_num = 0

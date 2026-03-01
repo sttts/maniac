@@ -1,38 +1,47 @@
-"""SCUMM verb bar and inventory UI — authentic Maniac Mansion style."""
+"""SCUMM verb bar and inventory UI — matching original Maniac Mansion (1987)."""
 import pygame
 from src.font import draw_text, draw_text_centered, text_width, CHAR_H
 
-# Layout at 320x200 native resolution (matching real Maniac Mansion)
-SCENE_H = 136       # playable scene area
-STATUS_Y = 136      # one-line status text
-VERB_AREA_TOP = 146 # verb grid starts here
-VERB_AREA_H = 28    # 3 rows * ~9px
-INV_AREA_TOP = 176  # inventory below verbs
-INV_AREA_H = 24
-UI_TOP = STATUS_Y   # where the UI begins
+# Layout at 320x200 native resolution
+SCENE_H = 136        # playable scene area height
+STATUS_Y = 137       # status text line (above verbs)
+VERB_AREA_TOP = 146  # verb grid starts here
+VERB_AREA_H = 28     # 4 rows * ~7px
+INV_AREA_TOP = 174   # inventory below verbs
+INV_AREA_H = 26
+UI_TOP = SCENE_H     # where the UI background begins
 
-# Verb grid: 3 columns x 3 rows (matching Maniac Mansion layout)
+# Original Maniac Mansion verb layout: 4 columns x 4 rows
+# (some slots empty in last row)
 VERBS = [
-    "Walk to",  "Pick up",  "Use",
-    "Open",     "Look at",  "Turn on",
-    "Close",    "Give",     "Push",
+    # col 0        col 1        col 2        col 3
+    "Push",       "Open",      "Walk to",   "Turn on",
+    "Pull",       "Close",     "Pick up",   "Turn off",
+    "Give",       "Read",      "What is",   "Use",
+    "",           "",          "",          "",
 ]
 
-INVENTORY = ["Key", "Blank Tape", "Can of Pepsi"]
+# Only non-empty verbs for lookup
+VERB_LIST = [v for v in VERBS if v]
+
+INVENTORY = [
+    "screwdriver", "iPhone", "keys",
+    "invoice", "rubber duck",
+]
 
 # Authentic Maniac Mansion colors
-COL_UI_BG = (16, 16, 60)          # dark blue UI background
-COL_VERB = (0, 200, 0)            # green verbs (MM used bright green)
-COL_VERB_HI = (255, 255, 85)     # highlighted verb (bright yellow)
-COL_VERB_CLICK = (255, 255, 255) # click flash white
-COL_INV_BG = (16, 16, 60)        # inventory background
-COL_INV_TEXT = (0, 200, 0)       # inventory text green
-COL_INV_BORDER = (80, 80, 120)   # subtle border between items
-COL_STATUS = (255, 255, 255)     # status line white
+COL_UI_BG = (0, 0, 0)                # black background
+COL_VERB = (0, 220, 0)               # bright green verbs
+COL_VERB_HI = (255, 255, 85)         # highlighted verb (bright yellow)
+COL_VERB_CLICK = (255, 255, 255)     # click flash white
+COL_STATUS = (255, 255, 255)         # status line white
+COL_INV = (200, 80, 200)             # pink/magenta inventory text
 
-# Verb positions: col_x offsets for 3 columns
-VERB_COL_X = [6, 110, 216]
-VERB_ROW_H = 9
+# 4-column layout positions
+VERB_COL_X = [4, 76, 156, 240]
+VERB_ROW_H = 8
+N_COLS = 4
+N_ROWS = 4
 
 
 class ScummUI:
@@ -56,19 +65,22 @@ class ScummUI:
         if verb not in VERBS:
             return (160, VERB_AREA_TOP + 14)
         idx = VERBS.index(verb)
-        col = idx % 3
-        row = idx // 3
+        col = idx % N_COLS
+        row = idx // N_COLS
         x = VERB_COL_X[col] + text_width(verb) // 2
         y = VERB_AREA_TOP + row * VERB_ROW_H + CHAR_H // 2
         return (x, y)
 
     def get_inventory_pos(self, item):
         if item not in INVENTORY:
-            return (160, INV_AREA_TOP + 10)
+            return (160, INV_AREA_TOP + 8)
         idx = INVENTORY.index(item)
-        slot_w = 320 // len(INVENTORY)
-        x = idx * slot_w + slot_w // 2
-        y = INV_AREA_TOP + 10
+        # Two rows of 3 items
+        col = idx % 3
+        row = idx // 3
+        slot_w = 320 // 3
+        x = col * slot_w + slot_w // 2
+        y = INV_AREA_TOP + row * 9 + 4
         return (x, y)
 
     def update(self, dt, cursor_x, cursor_y):
@@ -80,7 +92,7 @@ class ScummUI:
         # Verb hover detection
         self.highlight_verb = None
         if VERB_AREA_TOP <= cursor_y < VERB_AREA_TOP + VERB_AREA_H:
-            for verb in VERBS:
+            for verb in VERB_LIST:
                 vx, vy = self.get_verb_pos(verb)
                 hw = text_width(verb) // 2 + 4
                 if abs(cursor_x - vx) < hw and abs(cursor_y - vy) < 5:
@@ -88,20 +100,19 @@ class ScummUI:
                     break
 
     def draw(self, surface):
-        # Dark blue background for entire UI area
+        # Black background for entire UI area
         pygame.draw.rect(surface, COL_UI_BG, (0, UI_TOP, 320, 200 - UI_TOP))
 
-        # Thin separator line between scene and UI
-        pygame.draw.line(surface, (40, 40, 100), (0, UI_TOP), (319, UI_TOP))
-
-        # Status line (centered, one line above verbs)
+        # Status line (centered, above verb grid)
         if self.status_text:
-            draw_text_centered(surface, 160, STATUS_Y + 2, self.status_text, COL_STATUS)
+            draw_text_centered(surface, 160, STATUS_Y, self.status_text, COL_STATUS)
 
-        # Verb grid
+        # Verb grid: 4 columns x 4 rows
         for i, verb in enumerate(VERBS):
-            col = i % 3
-            row = i // 3
+            if not verb:
+                continue
+            col = i % N_COLS
+            row = i // N_COLS
             x = VERB_COL_X[col]
             y = VERB_AREA_TOP + row * VERB_ROW_H
 
@@ -116,17 +127,11 @@ class ScummUI:
 
             draw_text(surface, x, y, verb, color)
 
-        # Inventory area border
-        pygame.draw.line(surface, COL_INV_BORDER, (0, INV_AREA_TOP - 1), (319, INV_AREA_TOP - 1))
+        # Inventory separator line
+        pygame.draw.line(surface, (40, 40, 40), (0, INV_AREA_TOP - 1), (319, INV_AREA_TOP - 1))
 
-        # Inventory slots
-        slot_w = 320 // len(INVENTORY)
+        # Inventory items in pink/magenta — single row
+        x_pos = 4
         for i, item in enumerate(INVENTORY):
-            x = i * slot_w + 4
-            y = INV_AREA_TOP + 4
-            draw_text(surface, x, y, item, COL_INV_TEXT)
-
-            # Slot divider
-            if i > 0:
-                dx = i * slot_w
-                pygame.draw.line(surface, COL_INV_BORDER, (dx, INV_AREA_TOP), (dx, 199))
+            draw_text(surface, x_pos, INV_AREA_TOP + 2, item, COL_INV)
+            x_pos += text_width(item) + 12

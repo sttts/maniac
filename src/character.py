@@ -84,7 +84,7 @@ class Character:
         self.y = 125.0
         self.state = "stand"
         self.facing = 1       # 1=right, -1=left
-        self.walk_speed = 50.0
+        self.walk_speed = 120.0
         self.anim_timer = 0.0
         self.anim_frame = 0
         self.idle_timer = 0.0
