@@ -143,47 +143,58 @@ def generate_sid_music(duration=14.0):
 
 
 def generate_outro(duration=4.0):
-    """Outro jingle — resolving C minor chord progression with a final flourish."""
+    """Outro jingle — fast C64 chiptune fanfare, like a game level complete."""
     n = int(SAMPLE_RATE * duration)
     mix = np.zeros(n)
 
-    # Resolving chord progression: Cm → Ab → Eb → Cm (each ~0.8s)
-    chords = [
-        # (bass_freq, chord_freqs, start_time, dur)
-        (130.81, [261.63, 311.13, 392.00], 0.0, 0.9),   # Cm
-        (103.83, [207.65, 261.63, 311.13], 0.9, 0.9),    # Ab
-        (155.56, [311.13, 392.00, 466.16], 1.8, 0.9),    # Eb
-        (130.81, [261.63, 311.13, 392.00], 2.7, 1.3),    # Cm (held longer)
-    ]
-
-    for bass_f, chord_fs, t0, dur in chords:
+    def _add(wave, t0):
         start = int(t0 * SAMPLE_RATE)
+        end = min(start + len(wave), n)
+        mix[start:end] += wave[:end - start]
 
-        # Bass note (sawtooth)
-        bass = _sawtooth_wave(bass_f, dur, volume=0.18)
-        bass = _envelope(bass, attack=0.01, decay=0.15, sustain_level=0.5, release=0.1)
-        end = min(start + len(bass), n)
-        mix[start:end] += bass[:end - start]
+    # Fast ascending arpeggio run: C-Eb-G-C-Eb-G-C (staccato, 0.08s each)
+    arp_freqs = [261.63, 311.13, 392.00, 523.25, 622.25, 783.99, 1046.50]
+    for i, freq in enumerate(arp_freqs):
+        note = _square_wave(freq, 0.08, duty=0.25, volume=0.15)
+        note = _envelope(note, attack=0.003, decay=0.04, sustain_level=0.3, release=0.02)
+        _add(note, i * 0.08)
 
-        # Chord voices (pulse waves with slight detuning for richness)
-        for i, freq in enumerate(chord_fs):
-            duty = 0.35 + 0.1 * i
-            voice = _square_wave(freq, dur, duty=duty, volume=0.08)
-            voice = _envelope(voice, attack=0.02, decay=0.1, sustain_level=0.6, release=0.15)
-            end = min(start + len(voice), n)
-            mix[start:end] += voice[:end - start]
+    # Punchy bass hits under the arpeggio
+    for t in [0.0, 0.24, 0.48]:
+        bass = _sawtooth_wave(130.81, 0.12, volume=0.18)
+        bass = _envelope(bass, attack=0.005, decay=0.06, sustain_level=0.3, release=0.02)
+        _add(bass, t)
 
-    # Final note: high C with a long decay (signature ending)
-    final_start = int(2.7 * SAMPLE_RATE)
-    final = _square_wave(523.25, 1.3, duty=0.25, volume=0.1)
-    final = _envelope(final, attack=0.01, decay=0.3, sustain_level=0.4, release=0.5)
-    end = min(final_start + len(final), n)
-    mix[final_start:end] += final[:end - final_start]
+    # Victory phrase: short melody (da-da-da-DAAAA)
+    melody = [
+        (523.25, 0.12),  # C5
+        (622.25, 0.12),  # Eb5
+        (783.99, 0.12),  # G5
+        (1046.50, 0.5),  # C6 held
+    ]
+    t = 0.6
+    for freq, dur in melody:
+        note = _square_wave(freq, dur, duty=0.3, volume=0.14)
+        note = _envelope(note, attack=0.005, decay=0.05, sustain_level=0.7, release=0.05)
+        _add(note, t)
+        t += dur
 
-    # Fade out the last 0.5s
-    fade_samples = int(0.5 * SAMPLE_RATE)
-    mix[-fade_samples:] *= np.linspace(1, 0, fade_samples)
+    # Bass under the victory phrase
+    bass = _sawtooth_wave(130.81, 0.8, volume=0.15)
+    bass = _envelope(bass, attack=0.01, decay=0.2, sustain_level=0.4, release=0.1)
+    _add(bass, 0.6)
 
+    # Noise hit on the final note for impact
+    hit = _noise(0.08, volume=0.15)
+    hit = _envelope(hit, attack=0.001, decay=0.04, sustain_level=0.0, release=0.02)
+    _add(hit, 0.96)
+
+    # Quick echo of final note (quieter, delayed)
+    echo = _square_wave(1046.50, 0.3, duty=0.25, volume=0.06)
+    echo = _envelope(echo, attack=0.005, decay=0.1, sustain_level=0.3, release=0.1)
+    _add(echo, 1.6)
+
+    # Silence after ~2s
     return mix
 
 
