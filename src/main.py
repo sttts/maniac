@@ -6,6 +6,7 @@ import time
 # Ensure project root is on path
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
+import numpy as np
 import pygame
 
 from src.renderer import Renderer, FPS, NATIVE_W, NATIVE_H
@@ -19,7 +20,7 @@ from src.scenes.dos_boot import DosBootScene
 from src.scenes.flight_sim import FlightSimScene
 from src.scenes.record_exe import RecordExeScene
 from src.scenes.crt_inside import CrtInsideScene
-from src.sounds import generate_sid_music, mix_timeline, save_wav
+from src.sounds import generate_sid_music, generate_outro, mix_timeline, save_wav, SAMPLE_RATE
 
 
 def build_scenes(cursor, character, ui):
@@ -61,9 +62,23 @@ def generate_audio(scenes, total_duration, output_dir):
     # Collect SFX events
     sfx_events, _ = collect_sound_events(scenes)
 
-    # Generate background music
+    # Generate background music with fade-out before outro
+    from src.scenes import crt_inside
+    outro_start = total_duration - crt_inside.DURATION
     music = generate_sid_music(total_duration)
+
+    # Fade music out over 2s leading into the CRT scene
+    fade_start = int((outro_start - 1.0) * SAMPLE_RATE)
+    fade_end = int((outro_start + 1.0) * SAMPLE_RATE)
+    fade_len = fade_end - fade_start
+    if fade_start > 0 and fade_end <= len(music):
+        music[fade_start:fade_end] *= np.linspace(1, 0, fade_len)
+        music[fade_end:] = 0
     sfx_events.append((0.0, music))
+
+    # Outro jingle during CRT scene
+    outro = generate_outro(crt_inside.DURATION)
+    sfx_events.append((outro_start + 0.5, outro))
 
     # Mix everything
     mixed = mix_timeline(sfx_events, total_duration)

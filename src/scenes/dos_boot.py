@@ -41,8 +41,8 @@ class DosBootScene:
         draw_dos_screen(surface, self.visible_lines, cursor_visible=cursor_on)
 
     def get_sound_events(self, start_time):
-        from src.sounds import generate_disk_drive, generate_boot_beep
+        from src.sounds import generate_disk_drive, generate_apple2_beep
         return [
-            (start_time + 0.0, generate_boot_beep()),
             (start_time + 0.2, generate_disk_drive(1.5)),
+            (start_time + 1.5, generate_apple2_beep()),  # when C:\> appears
         ]
