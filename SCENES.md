@@ -1,26 +1,31 @@
 # Maniac Stefan — Scene Script
 
-YouTube channel intro, ~15 seconds, SCUMM adventure game style.
+YouTube channel intro, ~18.5 seconds, SCUMM adventure game style (Maniac Mansion 1987).
 
-## Scene 1: Living Room (2.5s)
+**UI:** Authentic Maniac Mansion layout — black background, 4-column green verb grid, pink/magenta inventory items, white arrow cursor, white status line.
+
+**Inventory:** Screwdriver, iPhone, Keys, Invoice, Rubber Duck
+
+## Scene 1: Living Room (3.0s)
 
 **Background:** `living_room.png` — Staircase left, grandfather clock, green lamp, blue couch with cat, door right.
 
 | Time | Action |
 |------|--------|
-| 0.0s | Stefan stands left of center, cursor visible mid-screen |
+| 0.0s | Stefan stands left of center, arrow cursor visible mid-screen |
 | 0.2s | Cursor moves to **"Walk to"** verb |
 | 0.7s | Click — verb highlights, status: "Walk to" |
 | 0.7s | Cursor moves to door (right side) |
 | 1.2s | Click — status: "Walk to Door" |
 | 1.2s | Stefan walks right toward door |
-| 2.5s | Scene ends |
+| ~2.8s | Stefan reaches door |
+| 3.0s | Scene ends |
 
 **Sounds:** Click at 0.7s (verb), click at 1.2s (door)
 
 ---
 
-## Scene 2: Computer Room (3.5s)
+## Scene 2: Computer Room (4.0s)
 
 **Background:** `computer_room.png` — Desk with CRT, keyboard, 3D printer, Kubernetes poster, lambda picture, model airplane, spider web.
 
@@ -30,17 +35,18 @@ YouTube channel intro, ~15 seconds, SCUMM adventure game style.
 | 0.15s | Cursor moves to **"Walk to"** verb |
 | 0.45s | Click — status: "Walk to" |
 | 0.45s | Cursor moves to chair area |
-| 0.75s | Click — status: "Walk to Chair", Stefan walks north-east to desk |
-| ~1.3s | Stefan arrives, sits down |
-| 1.3s | Cursor moves to **"Use"** verb |
-| 1.6s | Click — status: "Use" |
-| 1.6s | Cursor moves to microphone on desk |
-| 1.9s | Click — status: "Use Microphone" |
-| 1.9s | Cursor moves to **"Turn on"** verb |
-| 2.15s | Click — status: "Turn on" |
-| 2.15s | Cursor moves to computer monitor |
-| 2.4s | Click — status: "Turn on Computer" |
-| 3.5s | Scene ends |
+| 0.75s | Click — status: "Walk to Chair" |
+| 0.75s | Stefan walks NE diagonally to waypoint, then N to desk |
+| ~1.5s | Stefan arrives at chair, sits down |
+| 1.5s | Cursor moves to **"Use"** verb |
+| 1.8s | Click — status: "Use" |
+| 1.8s | Cursor moves to microphone on desk |
+| 2.1s | Click — status: "Use Microphone" |
+| 2.1s | Cursor moves to **"Turn on"** verb |
+| 2.4s | Click — status: "Turn on" |
+| 2.4s | Cursor moves to computer monitor |
+| 2.7s | Click — status: "Turn on Computer" |
+| 4.0s | Scene ends |
 
 **Sounds:** Clicks at 0.45s, 0.75s, 1.4s, 1.7s, 2.0s, 2.25s
 
@@ -48,7 +54,7 @@ YouTube channel intro, ~15 seconds, SCUMM adventure game style.
 
 ## Scene 3: Switch Close-Up (1.5s)
 
-**Background:** `switch_closeup.png` (procedural) — Close-up of computer power toggle switch.
+**Background:** Procedural — Close-up of computer power toggle switch.
 
 | Time | Action |
 |------|--------|
@@ -61,7 +67,6 @@ YouTube channel intro, ~15 seconds, SCUMM adventure game style.
 | 1.5s | Scene ends |
 
 **Sounds:** Click at 0.35s, click at 0.75s, boot beep at 0.8s
-**Status:** Needs PixelLab background
 
 ---
 
@@ -73,15 +78,14 @@ YouTube channel intro, ~15 seconds, SCUMM adventure game style.
 |------|--------|
 | 0.0s | Black screen, cursor hidden |
 | 0.0s | Boot beep sound |
-| 0.2s | Floppy drive sound starts |
+| 0.2s | C64 1541 floppy drive sound starts (loud mechanical grinding) |
 | 0.3s | "MS-DOS" appears |
 | 0.6s | "(C)Copyright Microsoft Corp" |
 | 0.9s | "1981-1990 ver 5.00A" |
 | 1.2s | "C:\>_" with blinking cursor |
-| 2.0s | Scene ends, cursor shown |
+| 2.0s | Scene ends |
 
-**Sounds:** Boot beep at 0.0s, C64 floppy drive sound at 0.2s (LOUD)
-**TODO:** Make floppy drive sound louder and more C64/1541-like
+**Sounds:** Boot beep at 0.0s, C64 1541 floppy drive sound at 0.2s
 
 ---
 
@@ -92,38 +96,43 @@ YouTube channel intro, ~15 seconds, SCUMM adventure game style.
 | Time | Action |
 |------|--------|
 | 0.0s | DOS prompt, cursor hidden, typing starts |
-| 0.0-0.54s | "FLIGHT.EXE" types out (0.06s per char) |
+| 0.0-0.54s | "FLIGHT.EXE" types out char by char (0.06s per char, keypress sounds) |
 | 0.8s | Game starts — top-down flight sim |
 | 0.8s | Engine hum sound starts |
-| 0.8-2.0s | Auto-scrolling forward (islands move down, plane centered) |
+| 0.8-2.0s | Auto-scrolling forward (islands scroll down, plane centered) |
 | 2.0s | Scene ends |
 
 **Sounds:** Keypress per character, flight engine hum (1.2s)
 
 ---
 
-## Scene 6: ESC → RECORD.EXE (2.0s)
+## Scene 6: ESC → Desktop → YouTube Studio (4.0s)
 
-**Background:** Black → DOS screen → REC screen (procedural).
+**Background:** ESC key → Windows-style desktop with YouTube Studio window → REC screen.
 
 | Time | Action |
 |------|--------|
 | 0.0s | Cursor hidden |
-| 0.1s | ESC key shown (3D button graphic) |
-| 0.3s | DOS prompt appears |
-| 0.3-0.9s | "RECORD.EXE" types out |
-| 1.15s | Enter key sound |
-| 1.2s | REC screen with blinking red dot and VU meters |
-| 2.0s | Scene ends, cursor shown |
+| 0.1s | ESC key shown (3D button graphic on black) |
+| 0.5s | Desktop appears (teal, YouTube Studio window, taskbar) |
+| 0.8s | Cursor visible, moves to **"Use"** verb |
+| 1.3s | Click — status: "Use" |
+| 1.6s | Cursor moves to YouTube Studio window title |
+| 2.1s | Click — status: "Use YouTube Studio" |
+| 2.5s | Cursor moves to RECORD button |
+| 2.9s | Click — status: "Use Record Button" |
+| 2.9s | REC screen with blinking red dot and VU meters |
+| 4.0s | Scene ends |
 
-**Sounds:** ESC keypress at 0.1s, typing keypresses, enter sound at 1.15s
-**TODO:** Replace with Desktop/YouTube Studio scene?
+**Desktop details:** My Computer icon, Recycle Bin, YouTube Studio window (red bar, "Stefan's Channel", Views: 1,337, Subs: 42, red RECORD button), Windows taskbar with Start button.
+
+**Sounds:** ESC keypress at 0.1s, clicks at 1.3s, 2.1s, 2.9s
 
 ---
 
 ## Scene 7: CRT Inside View (2.0s)
 
-**Background:** `crt_inside.png` (procedural) — Circuit boards on sides, CRT opening, Stefan waving.
+**Background:** Procedural — Circuit boards on sides, CRT opening, Stefan waving.
 
 | Time | Action |
 |------|--------|
@@ -133,28 +142,22 @@ YouTube channel intro, ~15 seconds, SCUMM adventure game style.
 | 2.0s | Scene ends |
 
 **Sounds:** Music continues
-**Status:** Needs PixelLab background
 
 ---
 
-## Planned Changes
+## Status
 
-### New: Desktop/YouTube Studio Scene (after ESC, before or replacing RECORD.EXE)
-- Desktop background with YouTube Studio open
-- Cursor clicks **"Use"** → **"YouTube Studio"**
-- Record button appears, cursor clicks it
-- Transition to REC/recording state
-- Needs background asset
+### Implemented
+- [x] SCUMM UI matching original Maniac Mansion (4-col verbs, arrow cursor, black bg)
+- [x] C64 1541 floppy drive sound (loud mechanical stepper motor grinding)
+- [x] SID-style chiptune music (3-channel, C minor)
+- [x] Desktop/YouTube Studio scene with SCUMM interactions
+- [x] Character-by-character terminal typing with keypress sounds
+- [x] Two-phase character walk (NE diagonal, then N) in computer room
 
-### Audio Improvements
-- [ ] C64 floppy drive sound (1541-style) — loud, mechanical grinding during DOS boot
-- [ ] Current SID music continues throughout
-
-### Missing Backgrounds (need PixelLab or manual creation)
-- [ ] `switch_closeup.png` — currently procedural
-- [ ] `crt_inside.png` — currently procedural
-- [ ] Desktop/YouTube Studio background — new scene
+### Missing Backgrounds (currently procedural)
+- [ ] `switch_closeup.png`
+- [ ] `crt_inside.png`
 
 ### Total Duration
-Current: 2.5 + 3.5 + 1.5 + 2.0 + 2.0 + 2.0 + 2.0 = **15.5s**
-With YouTube Studio scene: ~17-18s
+3.0 + 4.0 + 1.5 + 2.0 + 2.0 + 4.0 + 2.0 = **18.5s**
