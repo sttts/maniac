@@ -2,7 +2,7 @@
 
 A ~24 second YouTube channel intro styled after **Maniac Mansion** (1987) — the classic LucasArts SCUMM point-and-click adventure game.
 
-[![Watch the intro](https://github.com/sttts/maniac/releases/download/latest/screenshot.png)](https://github.com/sttts/maniac/releases/download/latest/intro.mp4)
+[![Watch the intro](https://github.com/sttts/maniac/releases/download/latest/screenshot.png)](https://sttts.github.io/maniac/)
 
 ## What it does
 

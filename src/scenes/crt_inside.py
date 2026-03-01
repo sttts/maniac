@@ -1,4 +1,4 @@
-"""Scene 7: CRT inside view — Stefan seen through CRT, recording dot blinking (~2s)."""
+"""Scene 7: CRT inside view — Stefan seen through CRT, recording dot blinking (~5s)."""
 import os
 import pygame
 
