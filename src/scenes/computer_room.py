@@ -29,9 +29,9 @@ MONITOR_X = 145
 MONITOR_Y = 48
 
 # 3D printer on the desk (left side of desk)
-PRINTER_X = 46
-PRINTER_Y = 44
-PRINTER_H = 25  # target height in native pixels
+PRINTER_X = 44
+PRINTER_Y = 39
+PRINTER_H = 30  # target height in native pixels
 
 
 def _load_printer_frames():
