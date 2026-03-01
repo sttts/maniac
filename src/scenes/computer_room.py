@@ -7,9 +7,9 @@ from src.pixel_art import draw_computer_room, load_background
 DURATION = 5.0
 
 # Spider descends from web on a silk thread
-SPIDER_X = 207          # on the wall, right of the poster frame
-SPIDER_START_Y = 25     # start: near the web
-SPIDER_END_Y = 55       # end: lower on the wall
+SPIDER_X = 204          # on the wall, right of the poster frame
+SPIDER_START_Y = 30     # start: near the web
+SPIDER_END_Y = 60       # end: lower on the wall
 SPIDER_SPEED = 6.0      # pixels per second
 
 # Waypoint: walk East first to be below desk (SCUMM L-shaped pathfinding)
@@ -29,8 +29,8 @@ MONITOR_X = 145
 MONITOR_Y = 48
 
 # 3D printer on the desk (left side of desk)
-PRINTER_X = 63
-PRINTER_Y = 46
+PRINTER_X = 46
+PRINTER_Y = 44
 PRINTER_H = 25  # target height in native pixels
 
 
@@ -197,7 +197,7 @@ class ComputerRoom:
         # Draw spider silk thread and spider
         sx = SPIDER_X
         sy = int(self.spider_y)
-        pygame.draw.line(surface, (160, 160, 150), (sx, SPIDER_START_Y), (sx, sy), 1)
+        pygame.draw.line(surface, (210, 210, 200), (sx, SPIDER_START_Y), (sx, sy), 1)
 
         # Spider: round body with 4 bent leg pairs
         dark = (25, 15, 8)
