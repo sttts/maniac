@@ -3,9 +3,49 @@
 Uses dithering, careful color placement, and detailed shapes to match the
 SCUMM engine look from the concept art.
 """
+import os
 import math
 import pygame
 from src.font import draw_text, draw_text_centered
+
+# Scene area is 320x136 (verb UI starts at y=136)
+SCENE_W, SCENE_H = 320, 136
+PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
+ASSETS_BG_DIR = os.path.join(PROJECT_ROOT, "assets", "backgrounds")
+
+_bg_cache = {}
+
+
+def load_background(name):
+    """Load a background PNG from assets/backgrounds, scaled to 320x136 scene area."""
+    if name in _bg_cache:
+        return _bg_cache[name]
+    path = os.path.join(ASSETS_BG_DIR, name)
+    if not os.path.exists(path):
+        return None
+    img = pygame.image.load(path)
+    try:
+        img = img.convert()
+    except pygame.error:
+        pass
+    # Scale to scene area (320x136), cropping black borders if needed
+    src_w, src_h = img.get_size()
+    # Auto-crop: find bounding box of non-black content
+    arr = pygame.surfarray.array3d(img)
+    # Find rows/cols where any pixel is > 10 brightness
+    mask = arr.max(axis=2) > 10
+    cols_any = mask.any(axis=1)
+    rows_any = mask.any(axis=0)
+    if cols_any.any() and rows_any.any():
+        x0 = int(cols_any.argmax())
+        x1 = int(src_w - cols_any[::-1].argmax())
+        y0 = int(rows_any.argmax())
+        y1 = int(src_h - rows_any[::-1].argmax())
+        img = img.subsurface((x0, y0, x1 - x0, y1 - y0))
+    # Scale to scene area
+    img = pygame.transform.scale(img, (SCENE_W, SCENE_H))
+    _bg_cache[name] = img
+    return img
 
 # ── Palette ──────────────────────────────────────────────────────────────────
 # Walls — deep indigo/purple tones with dithering

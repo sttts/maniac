@@ -1,5 +1,5 @@
 """Scene 2: Computer room — character enters, walks to desk, sits, cursor clicks Use → Microphone (~2s)."""
-from src.pixel_art import draw_computer_room
+from src.pixel_art import draw_computer_room, load_background
 
 
 DURATION = 2.0
@@ -58,8 +58,13 @@ class ComputerRoom:
 
     def draw(self, surface):
         if self.bg_cache is None:
-            self.bg_cache = surface.copy()
-            draw_computer_room(self.bg_cache)
+            bg = load_background("computer_room.png")
+            if bg:
+                self.bg_cache = surface.copy()
+                self.bg_cache.blit(bg, (0, 0))
+            else:
+                self.bg_cache = surface.copy()
+                draw_computer_room(self.bg_cache)
         surface.blit(self.bg_cache, (0, 0))
         self.character.draw(surface)
         self.ui.draw(surface)

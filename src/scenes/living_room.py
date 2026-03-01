@@ -1,5 +1,5 @@
 """Scene 1: Living room — cursor clicks 'Walk to', character walks to door (~2.5s)."""
-from src.pixel_art import draw_living_room
+from src.pixel_art import draw_living_room, load_background
 
 
 DURATION = 2.5
@@ -55,8 +55,14 @@ class LivingRoom:
 
     def draw(self, surface):
         if self.bg_cache is None:
-            self.bg_cache = surface.copy()
-            draw_living_room(self.bg_cache)
+            bg = load_background("living_room.png")
+            if bg:
+                self.bg_cache = surface.copy()
+                self.bg_cache.blit(bg, (0, 0))
+            else:
+                # Fallback to procedural
+                self.bg_cache = surface.copy()
+                draw_living_room(self.bg_cache)
         surface.blit(self.bg_cache, (0, 0))
         self.character.draw(surface)
         self.ui.draw(surface)
