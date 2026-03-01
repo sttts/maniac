@@ -1,8 +1,8 @@
 # Maniac Stefan
 
-A ~23 second YouTube channel intro styled after **Maniac Mansion** (1987) — the classic LucasArts SCUMM point-and-click adventure game.
+A ~24 second YouTube channel intro styled after **Maniac Mansion** (1987) — the classic LucasArts SCUMM point-and-click adventure game.
 
-<video src="https://github.com/sttts/maniac/releases/download/latest/intro.mp4" autoplay loop muted playsinline width="100%"></video>
+[![Watch the intro](https://github.com/sttts/maniac/releases/download/latest/screenshot.png)](https://github.com/sttts/maniac/releases/download/latest/intro.mp4)
 
 ## What it does
 
@@ -17,7 +17,7 @@ The video shows what looks like someone playing a retro adventure game: a visibl
 | 3 | Switch close-up | 1.5s | Flip power switch, green LED |
 | 4 | DOS boot | 2.0s | MS-DOS text boot, C64 floppy drive sound |
 | 5 | Flight simulator | 2.0s | Type FLIGHT.EXE, top-down retro flight game |
-| 6 | YouTube Studio | 4.0s | ESC key, Windows desktop, click Record |
+| 6 | YouTube Studio | 5.0s | ESC key, DOS `C:\> win`, Windows desktop, click Record |
 | 7 | CRT inside view | 5.0s | Zoom-out, recording indicator blink |
 
 ## Tech stack

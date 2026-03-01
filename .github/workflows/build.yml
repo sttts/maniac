@@ -34,20 +34,25 @@ jobs:
           SDL_AUDIODRIVER: dummy
         run: python src/main.py
 
-      - name: Upload video artifact
+      - name: Generate screenshot
+        run: make screenshot
+
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: intro-video
-          path: output/intro.mp4
+          path: |
+            output/intro.mp4
+            assets/screenshot.png
 
-      - name: Upload video to release (on push to master)
+      - name: Upload to release (on push to master)
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Create or update the "latest" release with the video
+          # Create or update the "latest" release with video and screenshot
           gh release delete latest --yes 2>/dev/null || true
-          gh release create latest output/intro.mp4 \
+          gh release create latest output/intro.mp4 assets/screenshot.png \
             --title "Latest Build" \
             --notes "Auto-built intro video from latest master." \
             --prerelease
