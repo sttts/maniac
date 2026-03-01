@@ -1,40 +1,50 @@
-import math
+"""Maniac Mansion crosshair cursor — small + with hollow center."""
 import pygame
 
 
 def _make_cursor_surface():
-    """Create a bold 12x16 SCUMM-style cursor — high-contrast and very visible."""
-    W, H = 12, 16
-    s = pygame.Surface((W, H), pygame.SRCALPHA)
-    # Large, bold arrow shape (SCUMM games had chunky, unmissable cursors)
-    pixels = [
-        "XO..........",
-        "XXO.........",
-        "XWXO........",
-        "XWWXO.......",
-        "XWWWXO......",
-        "XWWWWXO.....",
-        "XWWWWWXO....",
-        "XWWWWWWXO...",
-        "XWWWWWWWXO..",
-        "XWWWWWWWWXO.",
-        "XWWWWWXXXXX.",
-        "XWWXWWXO....",
-        "XWXXOWWXO...",
-        "XXO..OWWXO..",
-        "XO....OWXO..",
-        "O......OOO..",
+    """Create the original Maniac Mansion crosshair cursor.
+
+    Bitmap pattern matching the SCUMM crosshair: thin + with hollow center,
+    black outline for visibility on any background.
+    """
+    # B=black, W=white, .=transparent
+    # 23x23 with center at (11,11), hollow center, 1px-wide arms
+    pattern = [
+        "...........B...........",
+        "..........BWB..........",
+        "..........BWB..........",
+        "..........BWB..........",
+        "..........BWB..........",
+        "..........BWB..........",
+        "..........BWB..........",
+        "..........BWB..........",
+        "..........BWB..........",
+        "..........BWB..........",
+        ".BBBBBBBBBBWBBBBBBBBBB.",
+        "BWWWWWWWWWW.WWWWWWWWWWB",
+        ".BBBBBBBBBBWBBBBBBBBBB.",
+        "..........BWB..........",
+        "..........BWB..........",
+        "..........BWB..........",
+        "..........BWB..........",
+        "..........BWB..........",
+        "..........BWB..........",
+        "..........BWB..........",
+        "..........BWB..........",
+        "..........BWB..........",
+        "...........B...........",
     ]
-    white = (255, 255, 255, 255)
-    black = (0, 0, 0, 255)
-    for y, row in enumerate(pixels):
+    h = len(pattern)
+    w = len(pattern[0])
+    s = pygame.Surface((w, h), pygame.SRCALPHA)
+    s.fill((0, 0, 0, 0))
+    for y, row in enumerate(pattern):
         for x, ch in enumerate(row):
             if ch == "W":
-                s.set_at((x, y), white)
-            elif ch == "X":
-                s.set_at((x, y), black)
-            elif ch == "O":
-                s.set_at((x, y), black)
+                s.set_at((x, y), (255, 255, 255, 255))
+            elif ch == "B":
+                s.set_at((x, y), (0, 0, 0, 255))
     return s
 
 
@@ -96,4 +106,7 @@ class Cursor:
 
     def draw(self, surface):
         if self.visible:
-            surface.blit(self.surface, (int(self.x), int(self.y)))
+            # Center the crosshair on (self.x, self.y)
+            cx = int(self.x) - self.surface.get_width() // 2
+            cy = int(self.y) - self.surface.get_height() // 2
+            surface.blit(self.surface, (cx, cy))
