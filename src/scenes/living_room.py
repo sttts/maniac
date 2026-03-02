@@ -5,7 +5,8 @@ import pygame
 from src.pixel_art import draw_living_room, load_background
 
 
-DURATION = 3.5
+DURATION_SHORT = 2.5
+DURATION_LONG = 3.5
 
 # Door is at the far right edge of the background
 DOOR_X = 314
@@ -50,13 +51,19 @@ def _load_cat_frames():
 
 
 class LivingRoom:
-    def __init__(self, cursor, character, ui):
+    def __init__(self, cursor, character, ui, short=True):
         self.cursor = cursor
         self.character = character
         self.ui = ui
+        self.short = short
+        self.duration = DURATION_SHORT if short else DURATION_LONG
         self.time = 0.0
         self.done = False
         self.bg_cache = None
+
+        # Timing parameters
+        self._start_delay = 0.1 if short else 0.2
+        self._cursor_speed = 0.5 if short else 0.8
 
         # Animated cat
         self.cat_frames = _load_cat_frames()
@@ -101,17 +108,17 @@ class LivingRoom:
                 self.cat_anim_timer -= 0.2
                 self.cat_frame_idx = (self.cat_frame_idx + 1) % len(self.cat_frames)
 
-        # Step 1: cursor moves to "Walk to" verb (slow enough to see)
-        if self.time >= 0.2 and not self._started:
+        # Step 1: cursor moves to "Walk to" verb
+        if self.time >= self._start_delay and not self._started:
             self._started = True
             vx, vy = self.ui.get_verb_pos("Walk to")
-            self.cursor.move_to(vx, vy, duration=0.8, on_arrive=self._on_verb_arrive)
+            self.cursor.move_to(vx, vy, duration=self._cursor_speed, on_arrive=self._on_verb_arrive)
 
         # Step 2: after clicking verb, cursor moves to door in the scene
         if self._verb_clicked and not self._door_clicked and not self.cursor.is_moving():
-            self.cursor.move_to(DOOR_X, DOOR_Y, duration=0.8, on_arrive=self._on_door_arrive)
+            self.cursor.move_to(DOOR_X, DOOR_Y, duration=self._cursor_speed, on_arrive=self._on_door_arrive)
 
-        if self.time >= DURATION:
+        if self.time >= self.duration:
             self.done = True
 
     def draw(self, surface):
@@ -145,6 +152,11 @@ class LivingRoom:
         """Return (time, sound_array) tuples for this scene."""
         from src.sounds import generate_click_sound
         click = generate_click_sound()
+        if self.short:
+            return [
+                (start_time + 0.4, click),   # verb click
+                (start_time + 0.8, click),   # door click
+            ]
         return [
             (start_time + 0.7, click),   # verb click
             (start_time + 1.2, click),   # door click

@@ -1,15 +1,12 @@
-"""Scene 6: ESC → DOS prompt → Desktop → YouTube Studio — Use YouTube Studio, click Record (~5s)."""
+"""Scene 6: DOS prompt → Desktop → YouTube Studio — click Record."""
 import pygame
 from src.pixel_art import draw_dos_screen, draw_rec_screen
 from src.font import draw_text, draw_text_centered
 
 
-DURATION = 5.0
+DURATION_SHORT = 2.5
+DURATION_LONG = 5.0
 
-# Phase timing
-ESC_END = 0.5
-DOS_PROMPT_END = 1.3  # C:\> win + Enter
-DESKTOP_START = DOS_PROMPT_END
 WIN_COMMAND = "win"
 
 
@@ -88,17 +85,29 @@ REC_BTN_Y = 94
 
 
 class RecordExeScene:
-    def __init__(self, cursor, character, ui):
+    def __init__(self, cursor, character, ui, short=True):
         self.cursor = cursor
         self.character = character
         self.ui = ui
+        self.short = short
+        self.duration = DURATION_SHORT if short else DURATION_LONG
         self.time = 0.0
         self.done = False
-        self.phase = "esc"  # esc → dos_prompt → desktop → use_verb → yt_click → rec_click → recording
         self.cursor.visible = False
         self.bg_cache = None
         self._phase_started = False
         self._phase_delay = 0.0
+
+        # Phase timing depends on version
+        if short:
+            self.dos_prompt_end = 0.5
+            self.phase = "dos_prompt"
+        else:
+            self.esc_end = 0.5
+            self.dos_prompt_end = 1.3
+            self.phase = "esc"
+
+        self.desktop_start = self.dos_prompt_end
 
         # DOS prompt typing state
         self.dos_typed_chars = 0
@@ -118,52 +127,57 @@ class RecordExeScene:
 
     def _on_rec_click(self):
         self.ui.set_status("Use Record Button")
-        self.phase = "recording"
+        self.phase = "recording" if not self.short else "done"
 
     def update(self, dt):
         self.time += dt
         self.cursor.update(dt)
         self.ui.update(dt, self.cursor.x, self.cursor.y)
 
-        # Phase: ESC key shown briefly
-        if self.phase == "esc" and self.time > ESC_END:
+        # Long only: ESC key shown briefly
+        if self.phase == "esc" and self.time > self.esc_end:
             self.phase = "dos_prompt"
 
         # Phase: DOS prompt typing "win"
         if self.phase == "dos_prompt":
-            dos_time = self.time - ESC_END
+            dos_time = self.time if self.short else self.time - self.esc_end
             self.dos_typed_chars = min(len(WIN_COMMAND), int(dos_time / 0.08))
-            if self.time > DOS_PROMPT_END:
+            if self.time > self.dos_prompt_end:
                 self.phase = "desktop"
                 self.cursor.visible = True
                 self.cursor.teleport(160, 70)
-                self._phase_delay = self.time + 0.3
+                self._phase_delay = self.time + (0.2 if self.short else 0.3)
 
-        # Phase: desktop visible, cursor moves to "Use" verb
+        # Short: cursor goes directly to Record button
+        # Long: cursor goes to "Use" verb first
         if self.phase == "desktop" and not self._phase_started and not self.cursor.is_moving():
             if self.time >= self._phase_delay:
                 self._phase_started = True
-                vx, vy = self.ui.get_verb_pos("Use")
-                self.cursor.move_to(vx, vy, duration=0.5, on_arrive=self._on_use_verb)
+                if self.short:
+                    self.phase = "rec_click"
+                    self.cursor.move_to(REC_BTN_X, REC_BTN_Y, duration=0.4, on_arrive=self._on_rec_click)
+                else:
+                    vx, vy = self.ui.get_verb_pos("Use")
+                    self.cursor.move_to(vx, vy, duration=0.5, on_arrive=self._on_use_verb)
 
-        # Phase: cursor clicks on YouTube Studio window title
+        # Long only: cursor clicks on YouTube Studio window title
         if self.phase == "yt_click" and not self._phase_started and not self.cursor.is_moving():
             if self.time >= self._phase_delay:
                 self._phase_started = True
                 self.cursor.move_to(155, 35, duration=0.5, on_arrive=self._on_yt_click)
 
-        # Phase: cursor clicks Record button
+        # Long only: cursor clicks Record button
         if self.phase == "rec_click" and not self._phase_started and not self.cursor.is_moving():
             if self.time >= self._phase_delay:
                 self._phase_started = True
                 self.cursor.move_to(REC_BTN_X, REC_BTN_Y, duration=0.4, on_arrive=self._on_rec_click)
 
-        if self.time >= DURATION:
+        if self.time >= self.duration:
             self.done = True
 
     def draw(self, surface):
+        # Long only: ESC key press overlay
         if self.phase == "esc":
-            # ESC key press overlay
             surface.fill((0, 0, 0))
             pygame.draw.rect(surface, (50, 50, 58), (130, 50, 60, 36))
             pygame.draw.rect(surface, (80, 80, 90), (132, 52, 56, 32))
@@ -186,7 +200,7 @@ class RecordExeScene:
             draw_dos_screen(surface, lines, cursor_visible=cursor_on)
 
         elif self.phase == "recording":
-            # REC screen with blinking dot
+            # Long only: REC screen with blinking dot
             rec_blink = int(self.time * 3) % 2 == 0
             draw_rec_screen(surface, rec_blink=rec_blink)
 
@@ -200,7 +214,7 @@ class RecordExeScene:
             self.cursor.draw(surface)
             return
 
-        # For ESC, DOS, and recording phases, no UI overlay
+        # Non-desktop phases: draw cursor but no UI
         if self.phase != "recording":
             self.cursor.draw(surface)
 
@@ -208,22 +222,27 @@ class RecordExeScene:
         from src.sounds import generate_keypress, generate_click_sound, generate_mac_bong
         events = []
 
-        # ESC keypress
-        events.append((start_time + 0.1, generate_keypress()))
+        if not self.short:
+            # ESC keypress
+            events.append((start_time + 0.1, generate_keypress()))
 
-        # DOS "win" typing (3 chars at 0.08s intervals starting at ESC_END)
+        # DOS "win" typing
+        typing_start = 0.0 if self.short else self.esc_end
         for i in range(len(WIN_COMMAND)):
-            events.append((start_time + ESC_END + i * 0.08, generate_keypress()))
+            events.append((start_time + typing_start + i * 0.08, generate_keypress()))
+
         # Enter key
-        events.append((start_time + ESC_END + len(WIN_COMMAND) * 0.08, generate_keypress()))
+        events.append((start_time + typing_start + len(WIN_COMMAND) * 0.08, generate_keypress()))
 
         # Mac Classic startup bong when desktop appears
-        events.append((start_time + DESKTOP_START, generate_mac_bong()))
+        events.append((start_time + self.desktop_start, generate_mac_bong()))
 
-        # Use verb click
-        events.append((start_time + DESKTOP_START + 0.8, generate_click_sound()))
-        # YouTube Studio click
-        events.append((start_time + DESKTOP_START + 1.6, generate_click_sound()))
-        # Record button click
-        events.append((start_time + DESKTOP_START + 2.4, generate_click_sound()))
+        if self.short:
+            # Record button click only
+            events.append((start_time + self.desktop_start + 0.6, generate_click_sound()))
+        else:
+            # Use verb click, YouTube Studio click, Record button click
+            events.append((start_time + self.desktop_start + 0.8, generate_click_sound()))
+            events.append((start_time + self.desktop_start + 1.6, generate_click_sound()))
+            events.append((start_time + self.desktop_start + 2.4, generate_click_sound()))
         return events

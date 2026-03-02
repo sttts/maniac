@@ -4,7 +4,8 @@ import pygame
 from src.pixel_art import draw_computer_room, load_background
 
 
-DURATION = 5.0
+DURATION_SHORT = 3.5
+DURATION_LONG = 5.0
 
 # Spider descends from web on a silk thread
 SPIDER_X = 204          # on the wall, right of the poster frame
@@ -60,13 +61,19 @@ def _load_printer_frames():
 
 
 class ComputerRoom:
-    def __init__(self, cursor, character, ui):
+    def __init__(self, cursor, character, ui, short=True):
         self.cursor = cursor
         self.character = character
         self.ui = ui
+        self.short = short
+        self.duration = DURATION_SHORT if short else DURATION_LONG
         self.time = 0.0
         self.done = False
         self.bg_cache = None
+
+        # Timing parameters
+        self._start_delay = 0.1 if short else 0.15
+        self._cursor_speed = 0.45 if short else 0.6
 
         # Animated 3D printer
         self.printer_frames = _load_printer_frames()
@@ -148,39 +155,44 @@ class ComputerRoom:
             pass  # wait for cursor to finish
 
         # Step 1: cursor moves to "Walk to"
-        elif self._phase == "start" and self.time >= 0.15:
+        elif self._phase == "start" and self.time >= self._start_delay:
             vx, vy = self.ui.get_verb_pos("Walk to")
-            self.cursor.move_to(vx, vy, duration=0.6, on_arrive=self._on_walkto_verb)
+            self.cursor.move_to(vx, vy, duration=self._cursor_speed, on_arrive=self._on_walkto_verb)
             self._phase = "moving_to_verb"
 
         # Step 2: cursor clicks on the chair area
         elif self._phase == "walk_to_chair":
-            self.cursor.move_to(CHAIR_X, CHAIR_Y, duration=0.6, on_arrive=self._on_chair_click)
+            self.cursor.move_to(CHAIR_X, CHAIR_Y, duration=self._cursor_speed, on_arrive=self._on_chair_click)
             self._phase = "moving_to_chair"
 
-        # Step 3: after sitting, cursor moves to "Use"
+        # Step 3: after sitting — short skips to "Turn on", long goes through "Use" + mic
         elif self._phase == "sat":
-            vx, vy = self.ui.get_verb_pos("Use")
-            self.cursor.move_to(vx, vy, duration=0.6, on_arrive=self._on_use_verb)
-            self._phase = "moving_to_use"
+            if self.short:
+                vx, vy = self.ui.get_verb_pos("Turn on")
+                self.cursor.move_to(vx, vy, duration=self._cursor_speed, on_arrive=self._on_turnon_verb)
+                self._phase = "moving_to_turnon"
+            else:
+                vx, vy = self.ui.get_verb_pos("Use")
+                self.cursor.move_to(vx, vy, duration=self._cursor_speed, on_arrive=self._on_use_verb)
+                self._phase = "moving_to_use"
 
-        # Step 4: cursor clicks on microphone
+        # Long only: cursor clicks on microphone
         elif self._phase == "use_mic":
-            self.cursor.move_to(MIC_X, MIC_Y, duration=0.6, on_arrive=self._on_mic_click)
+            self.cursor.move_to(MIC_X, MIC_Y, duration=self._cursor_speed, on_arrive=self._on_mic_click)
             self._phase = "moving_to_mic"
 
-        # Step 5: cursor moves to "Turn on"
+        # Long only: cursor moves to "Turn on" after mic
         elif self._phase == "turnon":
             vx, vy = self.ui.get_verb_pos("Turn on")
-            self.cursor.move_to(vx, vy, duration=0.6, on_arrive=self._on_turnon_verb)
+            self.cursor.move_to(vx, vy, duration=self._cursor_speed, on_arrive=self._on_turnon_verb)
             self._phase = "moving_to_turnon"
 
-        # Step 6: cursor clicks on computer monitor
+        # Cursor clicks on computer monitor
         elif self._phase == "turnon_computer":
-            self.cursor.move_to(MONITOR_X, MONITOR_Y, duration=0.6, on_arrive=self._on_computer_click)
+            self.cursor.move_to(MONITOR_X, MONITOR_Y, duration=self._cursor_speed, on_arrive=self._on_computer_click)
             self._phase = "moving_to_computer"
 
-        if self.time >= DURATION:
+        if self.time >= self.duration:
             self.done = True
 
     def draw(self, surface):
@@ -235,6 +247,13 @@ class ComputerRoom:
     def get_sound_events(self, start_time):
         from src.sounds import generate_click_sound
         click = generate_click_sound()
+        if self.short:
+            return [
+                (start_time + 0.35, click),  # Walk to click
+                (start_time + 0.6, click),   # Chair click
+                (start_time + 2.0, click),   # Turn on click
+                (start_time + 2.3, click),   # Computer click
+            ]
         return [
             (start_time + 0.45, click),  # Walk to click
             (start_time + 0.75, click),  # Chair click

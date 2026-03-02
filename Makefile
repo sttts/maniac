@@ -1,20 +1,26 @@
-.PHONY: render preview screenshot clean install lint help
+.PHONY: render render-intro render-channel preview screenshot clean install lint help
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
 		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
-render: ## Render the full intro video to output/intro.mp4
+render: ## Render both intro.mp4 and channel.mp4
 	python src/main.py
 
-preview: ## Render with live Pygame preview window
-	python src/main.py --preview
+render-intro: ## Render short intro only (output/intro.mp4)
+	python src/main.py --intro
 
-screenshot: output/intro.mp4 ## Extract a screenshot from the rendered video
-	ffmpeg -y -i output/intro.mp4 -vf "select=eq(n\,60)" -frames:v 1 -update 1 assets/screenshot.png
+render-channel: ## Render long channel version only (output/channel.mp4)
+	python src/main.py --channel
+
+preview: ## Render intro with live Pygame preview window
+	python src/main.py --intro --preview
+
+screenshot: output/channel.mp4 ## Extract a screenshot from the channel video
+	ffmpeg -y -i output/channel.mp4 -vf "select=eq(n\,60)" -frames:v 1 -update 1 assets/screenshot.png
 
 clean: ## Remove rendered output (frames, audio, video)
-	rm -rf output/frames output/audio.wav output/intro.mp4
+	rm -rf output/frames output/audio.wav output/intro.mp4 output/channel.mp4
 
 install: ## Install Python dependencies into active venv
 	pip install -r requirements.txt

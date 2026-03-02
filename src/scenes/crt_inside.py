@@ -5,12 +5,15 @@ import pygame
 from src.font import draw_text
 
 
-DURATION = 6.0
+DURATION_SHORT = 3.5
+DURATION_LONG = 6.0
 
 # Sparkle on right glasses corner (viewer's right = image right)
 SPARKLE_POS = (195, 65)
-SPARKLE_DELAY = 1.8    # start after zoom (0.8s) + 1s pause
-SPARKLE_DURATION = 0.9 # one sparkle, grow then fade
+SPARKLE_DELAY_SHORT = 1.2
+SPARKLE_DELAY_LONG = 1.8
+SPARKLE_DURATION_SHORT = 0.7
+SPARKLE_DURATION_LONG = 0.9
 SPARKLE_H_MAX = 40     # horizontal ray max length
 SPARKLE_V_MAX = 10     # vertical ray max length
 
@@ -31,10 +34,13 @@ def _load_crt_bg():
 
 
 class CrtInsideScene:
-    def __init__(self, cursor, character, ui):
+    def __init__(self, cursor, character, ui, short=True):
         self.cursor = cursor
         self.character = character
         self.ui = ui
+        self.duration = DURATION_SHORT if short else DURATION_LONG
+        self.sparkle_delay = SPARKLE_DELAY_SHORT if short else SPARKLE_DELAY_LONG
+        self.sparkle_duration = SPARKLE_DURATION_SHORT if short else SPARKLE_DURATION_LONG
         self.time = 0.0
         self.done = False
         self.cursor.visible = False
@@ -42,7 +48,7 @@ class CrtInsideScene:
 
     def update(self, dt):
         self.time += dt
-        if self.time >= DURATION:
+        if self.time >= self.duration:
             self.done = True
 
     def draw(self, surface):
@@ -68,9 +74,9 @@ class CrtInsideScene:
         frame.blit(timer_surf, (260 - tw, 140))
 
         # Cross-shaped star burst on glasses corner (single burst)
-        sparkle_t = self.time - SPARKLE_DELAY
-        if 0 < sparkle_t < SPARKLE_DURATION:
-            phase = sparkle_t / SPARKLE_DURATION
+        sparkle_t = self.time - self.sparkle_delay
+        if 0 < sparkle_t < self.sparkle_duration:
+            phase = sparkle_t / self.sparkle_duration
             intensity = 1.0 - abs(2.0 * phase - 1.0)
         else:
             intensity = 0

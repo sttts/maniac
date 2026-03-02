@@ -46,6 +46,7 @@ jobs:
           name: intro-video
           path: |
             output/intro.mp4
+            output/channel.mp4
             assets/screenshot.png
 
       - name: Upload to release (on push to master)
@@ -53,9 +54,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Create or update the "latest" release with video and screenshot
+          # Create or update the "latest" release with videos and screenshot
           gh release delete latest --yes 2>/dev/null || true
-          gh release create latest output/intro.mp4 assets/screenshot.png \
+          gh release create latest output/intro.mp4 output/channel.mp4 assets/screenshot.png \
             --title "Latest Build" \
             --notes "Auto-built intro video from latest master." \
             --prerelease

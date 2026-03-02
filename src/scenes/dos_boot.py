@@ -2,7 +2,8 @@
 from src.pixel_art import draw_dos_screen
 
 
-DURATION = 2.0
+DURATION_SHORT = 1.5
+DURATION_LONG = 2.0
 
 BOOT_LINES = [
     "MS-DOS",
@@ -15,10 +16,11 @@ BOOT_LINES = [
 
 
 class DosBootScene:
-    def __init__(self, cursor, character, ui):
+    def __init__(self, cursor, character, ui, short=True):
         self.cursor = cursor
         self.character = character
         self.ui = ui
+        self.duration = DURATION_SHORT if short else DURATION_LONG
         self.time = 0.0
         self.done = False
         self.visible_lines = []
@@ -31,7 +33,7 @@ class DosBootScene:
         lines_to_show = int(self.time / 0.3) + 1
         self.visible_lines = BOOT_LINES[:min(lines_to_show, len(BOOT_LINES))]
 
-        if self.time >= DURATION:
+        if self.time >= self.duration:
             self.done = True
             self.cursor.visible = True
 

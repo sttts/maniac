@@ -1,6 +1,6 @@
 # Maniac Stefan
 
-A ~24 second YouTube channel intro styled after **Maniac Mansion** (1987) — the classic LucasArts SCUMM point-and-click adventure game.
+A YouTube channel intro styled after **Maniac Mansion** (1987) — the classic LucasArts SCUMM point-and-click adventure game.
 
 [![Watch the intro](https://github.com/sttts/maniac/releases/download/latest/screenshot.png)](https://sttts.github.io/maniac/)
 
@@ -8,17 +8,21 @@ A ~24 second YouTube channel intro styled after **Maniac Mansion** (1987) — th
 
 The video shows what looks like someone playing a retro adventure game: a visible mouse cursor clicks on verbs, a character walks between rooms, sits at a computer, boots DOS, plays a flight sim, opens YouTube Studio, and hits Record — all rendered at authentic 320x200 SCUMM resolution with pixel-perfect scaling.
 
-### Scenes
+Two versions are generated:
+- **`intro.mp4`** (~15s) — short version for YouTube intros
+- **`channel.mp4`** (~25s) — full version with all scenes
 
-| # | Scene | Duration | Highlights |
-|---|-------|----------|------------|
-| 1 | Living room | 3.5s | Animated sleeping cat, swinging clock pendulum, walk to door |
-| 2 | Computer room | 5.0s | 3D printer animation, spider descending from web, sit at desk |
-| 3 | Switch close-up | 1.5s | Flip power switch, green LED |
-| 4 | DOS boot | 2.0s | MS-DOS text boot, C64 floppy drive sound |
-| 5 | Flight simulator | 2.0s | Type FLIGHT.EXE, top-down retro flight game |
-| 6 | YouTube Studio | 5.0s | ESC key, DOS `C:\> win`, Windows desktop, click Record |
-| 7 | CRT inside view | 5.0s | Zoom-out, recording indicator blink |
+### Scenes (channel version)
+
+| # | Scene | Channel | Intro | Highlights |
+|---|-------|---------|-------|------------|
+| 1 | Living room | 3.5s | 2.5s | Animated sleeping cat, swinging clock pendulum, walk to door |
+| 2 | Computer room | 5.0s | 3.5s | 3D printer animation, spider descending from web, sit at desk |
+| 3 | Switch close-up | 1.5s | 1.5s | Flip power switch, green LED |
+| 4 | DOS boot | 2.0s | 1.5s | MS-DOS text boot, C64 floppy drive sound |
+| 5 | Flight simulator | 2.0s | — | Type FLIGHT.EXE, top-down retro flight game |
+| 6 | YouTube Studio | 5.0s | 2.5s | DOS `C:\> win`, Windows desktop, click Record |
+| 7 | CRT inside view | 6.0s | 3.5s | Zoom-out, lens flare sparkle, recording indicator blink |
 
 ## Tech stack
 
@@ -33,7 +37,7 @@ No external assets required for audio — everything is synthesized. Background 
 ```bash
 python -m venv .venv && source .venv/bin/activate
 make install
-make render    # outputs output/intro.mp4
+make render    # outputs output/intro.mp4 + output/channel.mp4
 ```
 
 Requires Python 3.10+ and ffmpeg installed (`brew install ffmpeg` on macOS).

@@ -6,7 +6,7 @@ DURATION = 1.5
 
 
 class SwitchScene:
-    def __init__(self, cursor, character, ui):
+    def __init__(self, cursor, character, ui, short=True):
         self.cursor = cursor
         self.character = character
         self.ui = ui
