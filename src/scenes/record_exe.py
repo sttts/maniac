@@ -1,7 +1,10 @@
 """Scene 6: DOS prompt → Desktop → YouTube Studio — click Record."""
+import os
 import pygame
 from src.pixel_art import draw_dos_screen, draw_rec_screen
-from src.font import draw_text, draw_text_centered
+from src.font import draw_text, draw_text_centered, text_width
+
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
 
 DURATION_SHORT = 2.5
@@ -27,6 +30,23 @@ def _draw_desktop(surface):
     pygame.draw.rect(surface, (180, 180, 180), (10, 38, 14, 16))
     pygame.draw.rect(surface, (160, 160, 160), (12, 36, 10, 4))
     draw_text(surface, 6, 56, "Recycle Bin", icon_color)
+
+    # Netscape icon (right column)
+    icon_size = 16
+    netscape_path = os.path.join(PROJECT_ROOT, "assets", "sprites", "icon_netscape.png")
+    if os.path.exists(netscape_path):
+        ns = pygame.image.load(netscape_path)
+        ns = pygame.transform.scale(ns, (icon_size, icon_size))
+        surface.blit(ns, (276, 8))
+    draw_text(surface, 284 - text_width("Netscape") // 2, 26, "Netscape", icon_color)
+
+    # ICQ flower icon (right column)
+    icq_path = os.path.join(PROJECT_ROOT, "assets", "sprites", "icon_icq.png")
+    if os.path.exists(icq_path):
+        icq = pygame.image.load(icq_path)
+        icq = pygame.transform.scale(icq, (icon_size, icon_size))
+        surface.blit(icq, (280, 40))
+    draw_text(surface, 288 - text_width("ICQ") // 2, 58, "ICQ", icon_color)
 
     # YouTube Studio window — centered, large
     win_x, win_y = 60, 16
