@@ -29,8 +29,8 @@ def _draw_desktop(surface):
     draw_text(surface, 6, 56, "Recycle Bin", icon_color)
 
     # YouTube Studio window — centered, large
-    win_x, win_y = 60, 10
-    win_w, win_h = 200, 110
+    win_x, win_y = 60, 16
+    win_w, win_h = 200, 104
 
     # Window frame
     pygame.draw.rect(surface, (200, 200, 200), (win_x, win_y, win_w, win_h))
@@ -47,23 +47,19 @@ def _draw_desktop(surface):
     cw, ch = win_w - 4, win_h - 16
     pygame.draw.rect(surface, (255, 255, 255), (cx, cy, cw, ch))
 
-    # YouTube logo / red bar at top
-    pygame.draw.rect(surface, (255, 0, 0), (cx, cy, cw, 14))
-    draw_text(surface, cx + 4, cy + 4, "YouTube Studio", (255, 255, 255))
-
     # Channel dashboard area
-    pygame.draw.rect(surface, (245, 245, 245), (cx + 2, cy + 18, cw - 4, ch - 20))
+    pygame.draw.rect(surface, (245, 245, 245), (cx + 2, cy + 4, cw - 4, ch - 6))
 
     # Channel name
-    draw_text(surface, cx + 6, cy + 22, "Stefan's Channel", (30, 30, 30))
+    draw_text(surface, cx + 6, cy + 8, "Stefan's Channel", (30, 30, 30))
 
     # Stats boxes
-    draw_text(surface, cx + 6, cy + 34, "Views: 1,337", (80, 80, 80))
-    draw_text(surface, cx + 6, cy + 44, "Subs: 42", (80, 80, 80))
+    draw_text(surface, cx + 6, cy + 20, "Views: 1,337", (80, 80, 80))
+    draw_text(surface, cx + 6, cy + 30, "Subs: 42", (80, 80, 80))
 
     # Big red RECORD / GO LIVE button
     btn_x = cx + cw // 2 - 35
-    btn_y = cy + 60
+    btn_y = cy + 48
     pygame.draw.rect(surface, (204, 0, 0), (btn_x, btn_y, 70, 20))
     pygame.draw.rect(surface, (255, 0, 0), (btn_x + 1, btn_y + 1, 68, 18))
     draw_text(surface, btn_x + 10, btn_y + 7, "RECORD", (255, 255, 255))
