@@ -49,7 +49,6 @@ def _load_crt_bg():
 def _load_face_frames():
     """Load face animation frames, auto-crop, make transparent, add CRT scanlines."""
     frames = []
-    fy_top = FACE_CENTER_Y - FACE_H // 2
     i = 0
     while True:
         path = os.path.join(FACE_DIR, f"frame_{i:03d}.png")
@@ -90,13 +89,13 @@ def _load_face_frames():
         cropped = img.subsurface((min_x, min_y, max_x - min_x + 1, max_y - min_y + 1))
         cw, ch = cropped.get_size()
 
-        # Scale to target height, preserving aspect ratio
-        scale = FACE_H / ch
-        new_w = max(1, int(cw * scale))
-        scaled = pygame.transform.scale(cropped, (new_w, FACE_H))
+        # Use original cropped size (no scaling)
+        scaled = cropped.copy()
+        new_w = cw
+        fy_top = FACE_CENTER_Y - ch // 2
 
         # CRT scanlines: darken every other row to match background
-        for sy in range(FACE_H):
+        for sy in range(ch):
             if (fy_top + sy) % 2 == 1:
                 for sx in range(new_w):
                     r, g, b, a = scaled.get_at((sx, sy))
@@ -105,14 +104,14 @@ def _load_face_frames():
 
         # Feather edges: soften alpha where face meets transparent background
         result = scaled.copy()
-        for sy in range(FACE_H):
+        for sy in range(ch):
             for sx in range(new_w):
                 r, g, b, a = result.get_at((sx, sy))
                 if a > 0:
                     clear = 0
                     for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
                         nx, ny = sx + dx, sy + dy
-                        if 0 <= nx < new_w and 0 <= ny < FACE_H:
+                        if 0 <= nx < new_w and 0 <= ny < ch:
                             if scaled.get_at((nx, ny))[3] < 30:
                                 clear += 1
                         else:
