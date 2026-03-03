@@ -1,6 +1,7 @@
 """Scene 7: CRT inside view — Stefan seen through CRT, recording dot blinking."""
 import math
 import os
+import random
 import pygame
 from src.font import draw_text
 
@@ -150,6 +151,71 @@ class CrtInsideScene:
         if self.time >= self.duration:
             self.done = True
 
+    def _draw_electric_effects(self, frame):
+        """Draw small electric sparks and arcs on the circuit board."""
+        t = self.time
+        rng = random.Random(int(t * 30))  # deterministic per-frame seed
+
+        # 1: Bottom-left capacitor — orange sparks shooting out
+        spark_period = 1.8
+        spark_phase = (t % spark_period) / spark_period
+        if spark_phase < 0.15:
+            p = spark_phase / 0.15
+            for _ in range(3):
+                dx = rng.randint(-4, 4)
+                dy = rng.randint(-6, -1)
+                dist = p * 8
+                sx = 45 + int(dx * dist / 4)
+                sy = 173 + int(dy * dist / 4)
+                bright = max(0, int(255 * (1.0 - p)))
+                col = (bright, max(0, int(bright * 0.6)), 0)
+                frame.set_at((sx, sy), col)
+
+        # 2: Bottom-right — zigzag arc between two components
+        arc_period = 2.5
+        arc_phase = ((t + 0.9) % arc_period) / arc_period
+        if arc_phase < 0.15:
+            ax1, ay1 = 280, 173
+            ax2, ay2 = 293, 167
+            steps = 5
+            prev = (ax1, ay1)
+            for s in range(1, steps + 1):
+                frac = s / steps
+                mx = ax1 + int((ax2 - ax1) * frac)
+                my = ay1 + int((ay2 - ay1) * frac)
+                if s < steps:
+                    mx += rng.randint(-2, 2)
+                    my += rng.randint(-2, 2)
+                pygame.draw.line(frame, (255, 200, 80), prev, (mx, my), 1)
+                prev = (mx, my)
+
+        # 3: Top-left — small spark burst from solder joint
+        spark_period3 = 3.2
+        spark_phase3 = ((t + 1.5) % spark_period3) / spark_period3
+        if spark_phase3 < 0.12:
+            p = spark_phase3 / 0.12
+            for _ in range(2):
+                angle = rng.uniform(0, 2 * math.pi)
+                dist = p * 5
+                sx = 32 + int(math.cos(angle) * dist)
+                sy = 42 + int(math.sin(angle) * dist)
+                bright = max(0, int(255 * (1.0 - p)))
+                frame.set_at((sx, sy), (bright, max(0, int(bright * 0.7)), 0))
+
+        # 5: Bottom-center PCB — orange sparks from chip
+        spark_period5 = 2.8
+        spark_phase5 = ((t + 2.0) % spark_period5) / spark_period5
+        if spark_phase5 < 0.12:
+            p = spark_phase5 / 0.12
+            for _ in range(2):
+                dx = rng.randint(-3, 3)
+                dy = rng.randint(-5, 0)
+                dist = p * 6
+                sx = 160 + int(dx * dist / 3)
+                sy = 185 + int(dy * dist / 3)
+                bright = max(0, int(255 * (1.0 - p)))
+                frame.set_at((sx, sy), (bright, max(0, int(bright * 0.5)), 0))
+
     def _get_face_overlay(self):
         """Return the face frame to overlay, or None for the background smile."""
         t = self.time
@@ -236,6 +302,9 @@ class CrtInsideScene:
 
             # Bright center dot
             pygame.draw.rect(frame, (bright, bright, bright), (cx - 1, cy - 1, 3, 3))
+
+        # Electric effects on circuit board
+        self._draw_electric_effects(frame)
 
         # Zoom-out effect: start zoomed in on center, scale out over 0.8s
         progress = min(1.0, self.time / 0.8)
