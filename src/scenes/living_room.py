@@ -17,12 +17,59 @@ CAT_X = 254
 CAT_Y = 71
 CAT_H = 35  # target height in native pixels
 
+# Sofa person position and animation
+SOFA_X = 229
+SOFA_Y = 55
+SOFA_ANIM_FPS = 1.0 / 0.13  # 130ms per frame
+SOFA_ANIM_START = 0.5  # start page turn after 0.5s
+
 # Clock pendulum: pivot point below clock face, swings left/right
 PENDULUM_PIVOT_X = 165
 PENDULUM_PIVOT_Y = 62
 PENDULUM_LENGTH = 14
 PENDULUM_PERIOD = 1.5  # seconds for full swing cycle
 PENDULUM_ANGLE = 0.25  # max angle in radians (~14 degrees)
+
+
+def _load_sofa_frames():
+    """Load sofa animation frames, cropped to union bounding box for pixel-perfect alignment."""
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    anim_dir = os.path.join(project_root, "assets", "sprites", "sofa_anim")
+
+    # First pass: load raw frames and find union bounding box
+    raw = []
+    u_min_x, u_min_y, u_max_x, u_max_y = 9999, 9999, 0, 0
+    i = 0
+    while True:
+        path = os.path.join(anim_dir, f"frame_{i:03d}.png")
+        if not os.path.exists(path):
+            break
+        img = pygame.image.load(path)
+        try:
+            img = img.convert_alpha()
+        except pygame.error:
+            pass
+        raw.append(img)
+        w, h = img.get_size()
+        for y in range(h):
+            for x in range(w):
+                if img.get_at((x, y))[3] > 10:
+                    u_min_x = min(u_min_x, x)
+                    u_min_y = min(u_min_y, y)
+                    u_max_x = max(u_max_x, x)
+                    u_max_y = max(u_max_y, y)
+        i += 1
+
+    if not raw or u_max_x <= u_min_x:
+        return []
+
+    # Second pass: crop all frames to the same union box
+    crop_w = u_max_x - u_min_x + 1
+    crop_h = u_max_y - u_min_y + 1
+    frames = []
+    for img in raw:
+        frames.append(img.subsurface((u_min_x, u_min_y, crop_w, crop_h)))
+    return frames
 
 
 def _load_cat_frames():
@@ -69,6 +116,11 @@ class LivingRoom:
         self.cat_frames = _load_cat_frames()
         self.cat_anim_timer = 0.0
         self.cat_frame_idx = 0
+
+        # Sofa person: frame 0 is resting, plays animation twice
+        self.sofa_frames = _load_sofa_frames()
+        anim_len = len(self.sofa_frames) / SOFA_ANIM_FPS if self.sofa_frames else 0
+        self.sofa_anim_starts = [SOFA_ANIM_START, self.duration - 0.5 - anim_len]
 
         # Place character left of center, feet on floor
         self.character.x = 80.0
@@ -143,6 +195,18 @@ class LivingRoom:
         if self.cat_frames:
             cat_frame = self.cat_frames[self.cat_frame_idx]
             surface.blit(cat_frame, (CAT_X, CAT_Y))
+
+        # Draw sofa person (play animation at each scheduled start, rest on frame 0)
+        if self.sofa_frames:
+            frame = self.sofa_frames[0]
+            for start in self.sofa_anim_starts:
+                anim_t = self.time - start
+                if 0 <= anim_t:
+                    idx = int(anim_t * SOFA_ANIM_FPS)
+                    if idx < len(self.sofa_frames):
+                        frame = self.sofa_frames[idx]
+                        break
+            surface.blit(frame, (SOFA_X, SOFA_Y))
 
         self.character.draw(surface)
         self.ui.draw(surface)

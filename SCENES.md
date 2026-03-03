@@ -32,6 +32,7 @@ Two versions: **intro** (~15s, short) and **channel** (~25s, full).
 **Animated overlays:**
 - Clock pendulum: swings inside dark window (pivot y=62, length 14, 1.5s period)
 - Cat: breathing animation on red towel on couch (200ms per frame)
+- Sofa person: sits on couch reading, page-turn animation (4 frames, 130ms) plays twice — once at 0.5s and once finishing 0.5s before scene end
 
 ---
 
